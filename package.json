@@ -4,13 +4,22 @@
   "description": "Study",
   "main": "index.js",
   "scripts": {
+    "dev": "next dev",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "next": "^13.1.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Levisq/clone-tabnews.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Levisq/clone-tabnews/issues"
+  },
+  "homepage": "https://github.com/Levisq/clone-tabnews#readme"
 }
