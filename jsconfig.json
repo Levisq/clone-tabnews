@@ -1,0 +1,6 @@
+//serve como um ABSOLUTE IMPORT na hr do JS procurar um caminho temos certeza de que ele vem pela root sem precisar de ../../../
+{
+    "compilerOptions": {
+        "baseUrl": "."
+    }
+}
