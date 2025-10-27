@@ -1,6 +1,9 @@
 # Node modules
 node_modules/
 
+#migrations
+infra/migrations
+
 #teste
 model/calculadora.js
 tests/calculadora.test.js
