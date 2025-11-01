@@ -16,7 +16,11 @@ const defaultMigrationOptions = {
 }
 
 export async function GET() {
-  const migrations = await migrationsRunner(defaultMigrationOptions);
+  const dbClient = await database.getNewClient();
+  const migrations = await migrationsRunner({
+    ...defaultMigrationOptions,
+    dbClient,
+  });
   return new Response(JSON.stringify(migrations), {
     status: 200,
     headers: { 'Content-Type': 'application/json' },
@@ -24,8 +28,10 @@ export async function GET() {
 }
 
 export async function POST() {
+  const dbClient = await database.getNewClient();
   const migrations = await migrationsRunner({
     ...defaultMigrationOptions,
+    dbClient,
     dryRun: false,
   });
 
