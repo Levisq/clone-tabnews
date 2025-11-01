@@ -9,7 +9,7 @@ const defaultMigrationOptions = {
   dbClient: dbClient,
   databaseUrl: process.env.DATABASE_URL,
   dryRun: true,
-  dir: join('infra', 'migrations'),
+  dir: join(process.cwd(), 'infra', 'migrations'),,
   direction: 'up',
   verbose: true,
   migrationsTable: 'pgmigrations'
