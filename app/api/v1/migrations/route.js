@@ -41,4 +41,3 @@ export async function POST() {
     headers: { 'Content-Type': 'application/json' },
   });
 }
-
