@@ -18043,9 +18043,9 @@ function emptyRiskForm(report) {
         recommendation: '',
     };
 }
-/** Mesma regra do importador da base: P×S ≥ 16 crítico, ≥ 10 alto, ≥ 5 moderado. */
+/** Matriz de classificação da base: 1–4 baixo, 5–9 moderado, 10–16 alto, 17–25 crítico. */
 function levelFromScore(score) {
-    if (score >= 16)
+    if (score >= 17)
         return 'critico';
     if (score >= 10)
         return 'alto';
@@ -18164,35 +18164,52 @@ function SearchableSelect({ id, value, options, onChange, placeholder, searchPla
 }
 // ─── Escala de 1 a 5 em bolinhas (probabilidade e severidade) ─────────────────
 const DOT_SCALE_COLORS = ['#22a861', '#7cb342', '#d98a00', '#d05a10', '#c0280e'];
-function DotScale({ id, labelledBy, value, onChange }) {
+/** Aba "Matriz de classificação de risco" da base de dados. */
+const PROBABILITY_SCALE = [
+    { label: 'Rara', description: 'Ocorrência excepcional; exposição muito limitada; controles robustos, presentes e aparentemente eficazes; não há indício de recorrência.' },
+    { label: 'Improvável', description: 'Exposição infrequente; controles existentes e geralmente eficazes; falha possível, mas pouco esperada no cenário observado.' },
+    { label: 'Possível', description: 'Exposição ocasional ou regular; controles parciais, dependentes de comportamento ou com alguma deficiência; evento pode ocorrer.' },
+    { label: 'Provável', description: 'Exposição frequente; controles deficientes, inconsistentes ou facilmente contornáveis; condição recorrente ou evento semelhante já observado.' },
+    { label: 'Quase certa', description: 'Exposição contínua ou muito frequente; perigo acessível; controles ausentes ou ineficazes; evento iminente ou repetitivo.' },
+];
+const SEVERITY_SCALE = [
+    { label: 'Leve', description: 'Sem lesão ou desconforto transitório; efeito rapidamente reversível; sem necessidade previsível de atendimento.' },
+    { label: 'Menor', description: 'Lesão leve ou agravo reversível, com primeiros socorros ou atendimento simples; pequena perda funcional temporária.' },
+    { label: 'Séria', description: 'Lesão ou agravo que pode exigir atendimento médico, afastamento temporário, sutura, fratura, queimadura moderada ou crise respiratória.' },
+    { label: 'Muito séria', description: 'Lesão grave, hospitalização, ameaça à vida, perda funcional permanente, amputação ou dano importante à saúde.' },
+    { label: 'Catastrófica', description: 'Fatalidade possível, múltiplas vítimas graves, incêndio/explosão de grande impacto, colapso estrutural ou emergência de grande magnitude.' },
+];
+function DotScale({ id, labelledBy, value, onChange, scale }) {
+    const [hover, setHover] = (0, react_1.useState)(0);
+    const shown = hover || value;
     const color = value ? DOT_SCALE_COLORS[value - 1] : 'var(--mr-border)';
     const move = (delta, from) => {
         const next = Math.min(5, Math.max(1, (value || 0) + delta));
         onChange(next);
         from.parentElement?.children[next - 1]?.focus();
     };
-    return ((0, jsx_runtime_1.jsx)("div", { id: id, role: "radiogroup", "aria-labelledby": labelledBy, style: { display: 'flex', alignItems: 'center', gap: 8, minHeight: 34 }, children: [1, 2, 3, 4, 5].map(n => {
-            const filled = value > 0 && n <= value;
-            const current = n === value;
-            return ((0, jsx_runtime_1.jsx)("button", { type: "button", role: "radio", "aria-checked": current, "aria-label": String(n), tabIndex: current || (!value && n === 1) ? 0 : -1, onClick: () => onChange(n), onKeyDown: e => {
-                    if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
-                        e.preventDefault();
-                        move(1, e.currentTarget);
-                    }
-                    if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
-                        e.preventDefault();
-                        move(-1, e.currentTarget);
-                    }
-                }, style: {
-                    width: 30, height: 30, borderRadius: '50%', padding: 0, flexShrink: 0,
-                    border: `2px solid ${filled ? color : 'var(--mr-border)'}`,
-                    background: filled ? color : 'var(--mr-surface)',
-                    color: filled ? '#ffffff' : 'var(--mr-text-muted)',
-                    fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-                    boxShadow: current ? `0 0 0 3px var(--mr-surface), 0 0 0 5px ${color}` : 'none',
-                    transition: 'background 0.12s, border-color 0.12s',
-                }, children: n }, n));
-        }) }));
+    return ((0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("div", { id: id, role: "radiogroup", "aria-labelledby": labelledBy, onMouseLeave: () => setHover(0), style: { display: 'flex', alignItems: 'center', gap: 8, minHeight: 34 }, children: [1, 2, 3, 4, 5].map(n => {
+                    const filled = value > 0 && n <= value;
+                    const current = n === value;
+                    return ((0, jsx_runtime_1.jsx)("button", { type: "button", role: "radio", "aria-checked": current, "aria-label": `${n} – ${scale[n - 1].label}`, title: `${n} – ${scale[n - 1].label}: ${scale[n - 1].description}`, tabIndex: current || (!value && n === 1) ? 0 : -1, onMouseEnter: () => setHover(n), onClick: () => onChange(n), onKeyDown: e => {
+                            if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+                                e.preventDefault();
+                                move(1, e.currentTarget);
+                            }
+                            if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+                                e.preventDefault();
+                                move(-1, e.currentTarget);
+                            }
+                        }, style: {
+                            width: 30, height: 30, borderRadius: '50%', padding: 0, flexShrink: 0,
+                            border: `2px solid ${filled ? color : 'var(--mr-border)'}`,
+                            background: filled ? color : 'var(--mr-surface)',
+                            color: filled ? '#ffffff' : 'var(--mr-text-muted)',
+                            fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                            boxShadow: current ? `0 0 0 3px var(--mr-surface), 0 0 0 5px ${color}` : 'none',
+                            transition: 'background 0.12s, border-color 0.12s',
+                        }, children: n }, n));
+                }) }), (0, jsx_runtime_1.jsx)("div", { "aria-live": "polite", style: { marginTop: 6, minHeight: 30 }, children: shown ? ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsxs)("div", { style: { fontSize: 12, fontWeight: 700, color: DOT_SCALE_COLORS[shown - 1] }, children: [shown, " \u2013 ", scale[shown - 1].label, hover && hover !== value ? ' (prévia)' : ''] }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 11, color: 'var(--mr-text-muted)', lineHeight: 1.4 }, children: scale[shown - 1].description })] })) : ((0, jsx_runtime_1.jsx)("div", { style: { fontSize: 11, color: 'var(--mr-text-muted)' }, children: "Passe o mouse para ver o que cada n\u00EDvel significa." })) })] }));
 }
 function EngineerDashboard() {
     const [activeNav, setActiveNav] = (0, react_1.useState)('relatos');
@@ -18352,7 +18369,7 @@ function EngineerDashboard() {
                                                                                             label: room.name,
                                                                                             hint: [floor, room.code !== room.name ? room.code : '', roomTypeLabel(room.type)].filter(Boolean).join(' · '),
                                                                                         })),
-                                                                                    ] })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1' }, children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-hazard", children: "Perigo (fator de risco) *" }), (0, jsx_runtime_1.jsx)("input", { id: "rf-hazard", value: form.hazard, onChange: e => updateForm(selectedReport, { hazard: e.target.value }), placeholder: "Ex.: Instala\u00E7\u00F5es de esgoto aparentes", style: formInput })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-source", children: "Fonte/origem" }), (0, jsx_runtime_1.jsx)("input", { id: "rf-source", value: form.source, onChange: e => updateForm(selectedReport, { source: e.target.value }), style: formInput })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-exposed", children: "P\u00FAblico exposto *" }), (0, jsx_runtime_1.jsx)("input", { id: "rf-exposed", list: "rf-exposed-options", value: form.exposedPublic, onChange: e => updateForm(selectedReport, { exposedPublic: e.target.value }), style: formInput }), (0, jsx_runtime_1.jsx)("datalist", { id: "rf-exposed-options", children: EXPOSED_PUBLIC_OPTIONS.map(o => (0, jsx_runtime_1.jsx)("option", { value: o }, o)) })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1' }, children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-consequence", children: "Poss\u00EDveis consequ\u00EAncias *" }), (0, jsx_runtime_1.jsx)("textarea", { id: "rf-consequence", rows: 2, value: form.consequence, onChange: e => updateForm(selectedReport, { consequence: e.target.value }), style: { ...formInput, resize: 'vertical' } })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1' }, children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-controls", children: "Medidas de controle existentes" }), (0, jsx_runtime_1.jsx)("textarea", { id: "rf-controls", rows: 2, value: form.existingControls, onChange: e => updateForm(selectedReport, { existingControls: e.target.value }), style: { ...formInput, resize: 'vertical' } })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("span", { id: "rf-prob-label", style: formLabel, children: "Probabilidade (P) *" }), (0, jsx_runtime_1.jsx)(DotScale, { id: "rf-prob", labelledBy: "rf-prob-label", value: form.probability, onChange: n => updateForm(selectedReport, { probability: n }) })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("span", { id: "rf-sev-label", style: formLabel, children: "Severidade (S) *" }), (0, jsx_runtime_1.jsx)(DotScale, { id: "rf-sev", labelledBy: "rf-sev-label", value: form.severity, onChange: n => updateForm(selectedReport, { severity: n }) })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'var(--mr-surface-2)', borderRadius: 8, border: '1px solid var(--mr-green-soft)' }, children: [(0, jsx_runtime_1.jsxs)("span", { style: { fontSize: 12, color: 'var(--mr-text-2)' }, children: ["Risco (P\u00D7S): ", (0, jsx_runtime_1.jsx)("strong", { style: { color: 'var(--mr-text)' }, children: riskScore || '—' })] }), (0, jsx_runtime_1.jsx)("span", { style: { fontSize: 12, color: 'var(--mr-text-2)', marginLeft: 8 }, children: "Classifica\u00E7\u00E3o:" }), riskScore
+                                                                                    ] })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1' }, children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-hazard", children: "Perigo (fator de risco) *" }), (0, jsx_runtime_1.jsx)("input", { id: "rf-hazard", value: form.hazard, onChange: e => updateForm(selectedReport, { hazard: e.target.value }), placeholder: "Ex.: Instala\u00E7\u00F5es de esgoto aparentes", style: formInput })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-source", children: "Fonte/origem" }), (0, jsx_runtime_1.jsx)("input", { id: "rf-source", value: form.source, onChange: e => updateForm(selectedReport, { source: e.target.value }), style: formInput })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-exposed", children: "P\u00FAblico exposto *" }), (0, jsx_runtime_1.jsx)("input", { id: "rf-exposed", list: "rf-exposed-options", value: form.exposedPublic, onChange: e => updateForm(selectedReport, { exposedPublic: e.target.value }), style: formInput }), (0, jsx_runtime_1.jsx)("datalist", { id: "rf-exposed-options", children: EXPOSED_PUBLIC_OPTIONS.map(o => (0, jsx_runtime_1.jsx)("option", { value: o }, o)) })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1' }, children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-consequence", children: "Poss\u00EDveis consequ\u00EAncias *" }), (0, jsx_runtime_1.jsx)("textarea", { id: "rf-consequence", rows: 2, value: form.consequence, onChange: e => updateForm(selectedReport, { consequence: e.target.value }), style: { ...formInput, resize: 'vertical' } })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1' }, children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-controls", children: "Medidas de controle existentes" }), (0, jsx_runtime_1.jsx)("textarea", { id: "rf-controls", rows: 2, value: form.existingControls, onChange: e => updateForm(selectedReport, { existingControls: e.target.value }), style: { ...formInput, resize: 'vertical' } })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("span", { id: "rf-prob-label", style: formLabel, children: "Probabilidade (P) *" }), (0, jsx_runtime_1.jsx)(DotScale, { id: "rf-prob", scale: PROBABILITY_SCALE, labelledBy: "rf-prob-label", value: form.probability, onChange: n => updateForm(selectedReport, { probability: n }) })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("span", { id: "rf-sev-label", style: formLabel, children: "Severidade (S) *" }), (0, jsx_runtime_1.jsx)(DotScale, { id: "rf-sev", scale: SEVERITY_SCALE, labelledBy: "rf-sev-label", value: form.severity, onChange: n => updateForm(selectedReport, { severity: n }) })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'var(--mr-surface-2)', borderRadius: 8, border: '1px solid var(--mr-green-soft)' }, children: [(0, jsx_runtime_1.jsxs)("span", { style: { fontSize: 12, color: 'var(--mr-text-2)' }, children: ["Risco (P\u00D7S): ", (0, jsx_runtime_1.jsx)("strong", { style: { color: 'var(--mr-text)' }, children: riskScore || '—' })] }), (0, jsx_runtime_1.jsx)("span", { style: { fontSize: 12, color: 'var(--mr-text-2)', marginLeft: 8 }, children: "Classifica\u00E7\u00E3o:" }), riskScore
                                                                                     ? (0, jsx_runtime_1.jsx)(RiskBadge, { level: levelFromScore(riskScore), size: "md" })
                                                                                     : (0, jsx_runtime_1.jsx)("span", { style: { fontSize: 12, color: 'var(--mr-text-muted)' }, children: "preencha P e S" })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1' }, children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-rec", children: "Recomenda\u00E7\u00F5es" }), (0, jsx_runtime_1.jsx)("textarea", { id: "rf-rec", rows: 3, value: form.recommendation, onChange: e => updateForm(selectedReport, { recommendation: e.target.value }), placeholder: "Medidas recomendadas e setor respons\u00E1vel", style: { ...formInput, resize: 'vertical' } })] })] })] }))] }), (0, jsx_runtime_1.jsx)("div", { style: {
                                                         padding: '12px 20px', borderTop: '1px solid var(--mr-border)',
@@ -34982,13 +34999,13 @@ exports.CAMPUS_DATA = [
                         "risks": [
                             {
                                 "id": "xlsx-r001",
-                                "title": "Substâncias compostas e produtos químicos em geral",
+                                "title": "Gases e Vapores",
                                 "category": "Químicos",
                                 "level": "moderado",
                                 "status": "pendente",
                                 "description": "Risco químicos identificado neste local.",
-                                "hazard": "Substâncias compostas e produtos químicos em geral",
-                                "riskEvent": "Substâncias compostas e produtos químicos em geral",
+                                "hazard": "Gases e Vapores",
+                                "riskEvent": "Gases e Vapores",
                                 "consequence": "Intoxicação, dores de cabeça, vertigem",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com preparo de soluções químicas diversas.",
@@ -34999,17 +35016,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [],
                                 "imageUrl": "20230503_111119.jpg",
+                                "source": "Substâncias compostas e produtos químicos em geral",
                                 "existingControls": "Máscaras"
                             },
                             {
                                 "id": "xlsx-r002",
-                                "title": "Exigência de postura inadequada",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "moderado",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com preparo de soluções químicas diversas.",
@@ -35023,13 +35041,13 @@ exports.CAMPUS_DATA = [
                             },
                             {
                                 "id": "xlsx-r003",
-                                "title": "Manipulação de produtos químicos",
+                                "title": "Manipulação de produtos químicos perigosos",
                                 "category": "Acidentes",
                                 "level": "alto",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Manipulação de produtos químicos",
-                                "riskEvent": "Manipulação de produtos químicos",
+                                "hazard": "Manipulação de produtos químicos perigosos",
+                                "riskEvent": "Manipulação de produtos químicos perigosos",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com preparo de soluções químicas diversas.",
@@ -35040,6 +35058,7 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [],
                                 "imageUrl": "20230503_111119.jpg",
+                                "source": "Substâncias compostas ou Produtos Químicos em geral",
                                 "existingControls": "Jaleco, luvas e sapatos fechados, óculos de segurança e máscara."
                             },
                             {
@@ -35061,6 +35080,7 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [],
                                 "imageUrl": "20230503_111119.jpg",
+                                "source": "Vidrarias diversas",
                                 "existingControls": "Luvas"
                             },
                             {
@@ -35082,6 +35102,7 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [],
                                 "imageUrl": "20230503_111119.jpg",
+                                "source": "Equipamentos diversos que transmitem calor",
                                 "existingControls": "Luvas"
                             },
                             {
@@ -35102,17 +35123,18 @@ exports.CAMPUS_DATA = [
                                 "registeredAt": "2026-09-28",
                                 "updatedAt": "2026-09-28",
                                 "flags": [],
-                                "imageUrl": "20230503_111119.jpg"
+                                "imageUrl": "20230503_111119.jpg",
+                                "source": "Máquinas e equipamentos diveros"
                             },
                             {
                                 "id": "xlsx-r007",
-                                "title": "Botijão de gás (vazamento/fogo)",
+                                "title": "Utilização de gases (ou mistura) sob pressão",
                                 "category": "Acidentes",
                                 "level": "alto",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Botijão de gás (vazamento/fogo)",
-                                "riskEvent": "Botijão de gás (vazamento/fogo)",
+                                "hazard": "Utilização de gases (ou mistura) sob pressão",
+                                "riskEvent": "Utilização de gases (ou mistura) sob pressão",
                                 "consequence": "Incêndios e explosões",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com preparo de soluções químicas diversas.",
@@ -35122,17 +35144,18 @@ exports.CAMPUS_DATA = [
                                 "registeredAt": "2026-09-28",
                                 "updatedAt": "2026-09-28",
                                 "flags": [],
-                                "imageUrl": "20230503_111119.jpg"
+                                "imageUrl": "20230503_111119.jpg",
+                                "source": "Botijão de gás glp"
                             },
                             {
                                 "id": "xlsx-r008",
-                                "title": "Teto com salitre (queda de reboco)",
+                                "title": "Piso, parede ou teto com rachaduras",
                                 "category": "Acidentes",
                                 "level": "moderado",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Teto com salitre (queda de reboco)",
-                                "riskEvent": "Teto com salitre (queda de reboco)",
+                                "hazard": "Piso, parede ou teto com rachaduras",
+                                "riskEvent": "Piso, parede ou teto com rachaduras",
                                 "consequence": "Desabamento de revestimento do teto, lesões na cabeça, danos em equipamentos",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com preparo de soluções químicas diversas.",
@@ -35142,7 +35165,8 @@ exports.CAMPUS_DATA = [
                                 "registeredAt": "2026-09-28",
                                 "updatedAt": "2026-09-28",
                                 "flags": [],
-                                "imageUrl": "20230503_111119.jpg"
+                                "imageUrl": "20230503_111119.jpg",
+                                "source": "Teto com salitre (queda de reboco)"
                             }
                         ]
                     },
@@ -35161,13 +35185,13 @@ exports.CAMPUS_DATA = [
                         "risks": [
                             {
                                 "id": "xlsx-r009",
-                                "title": "Substâncias compostas e produtos químicos em geral",
+                                "title": "Gases e Vapores",
                                 "category": "Químicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco químicos identificado neste local.",
-                                "hazard": "Substâncias compostas e produtos químicos em geral",
-                                "riskEvent": "Substâncias compostas e produtos químicos em geral",
+                                "hazard": "Gases e Vapores",
+                                "riskEvent": "Gases e Vapores",
                                 "consequence": "Intoxicação, dores de cabeça, vertigem",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com preparo de soluções químicas diversas.",
@@ -35179,17 +35203,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas e produtos químicos em geral",
                                 "existingControls": "Máscara"
                             },
                             {
                                 "id": "xlsx-r010",
-                                "title": "Exigência de postura inadequada",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com preparo de soluções químicas diversas.",
@@ -35204,13 +35229,13 @@ exports.CAMPUS_DATA = [
                             },
                             {
                                 "id": "xlsx-r011",
-                                "title": "Manipulação de produtos químicos",
+                                "title": "Manipulação de produtos químicos perigosos",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Manipulação de produtos químicos",
-                                "riskEvent": "Manipulação de produtos químicos",
+                                "hazard": "Manipulação de produtos químicos perigosos",
+                                "riskEvent": "Manipulação de produtos químicos perigosos",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com preparo de soluções químicas diversas.",
@@ -35222,6 +35247,7 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas ou Produtos Químicos em geral",
                                 "existingControls": "Jaleco, luvas e sapatos fechados, óculos de segurança e máscara."
                             },
                             {
@@ -35244,17 +35270,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Vidrarias diversas",
                                 "existingControls": "Luvas"
                             },
                             {
                                 "id": "xlsx-r013",
-                                "title": "Contato com superfícies aquecidas",
+                                "title": "Contato com superfícies quentes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Contato com superfícies aquecidas",
-                                "riskEvent": "Contato com superfícies aquecidas",
+                                "hazard": "Contato com superfícies quentes",
+                                "riskEvent": "Contato com superfícies quentes",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com preparo de soluções químicas diversas.",
@@ -35266,6 +35293,7 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Equipamentos diversos que transmitem calor",
                                 "existingControls": "Luvas"
                             },
                             {
@@ -35287,17 +35315,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Máquinas e equipamentos diveros"
                             },
                             {
                                 "id": "xlsx-r015",
-                                "title": "Chuveiro de emergência com instalação inadequada",
+                                "title": "Equipamento de emergência defeituoso",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Chuveiro de emergência com instalação inadequada",
-                                "riskEvent": "Chuveiro de emergência com instalação inadequada",
+                                "hazard": "Equipamento de emergência defeituoso",
+                                "riskEvent": "Equipamento de emergência defeituoso",
                                 "consequence": "Agravamento de queimaduras e lesões químicas",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com preparo de soluções químicas diversas.",
@@ -35309,6 +35338,7 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Chuveiro de emergência com instalação inadequada",
                                 "existingControls": "."
                             }
                         ]
@@ -35328,13 +35358,13 @@ exports.CAMPUS_DATA = [
                         "risks": [
                             {
                                 "id": "xlsx-r016",
-                                "title": "Substâncias compostas e produtos químicos em geral",
+                                "title": "Gases e Vapores",
                                 "category": "Químicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco químicos identificado neste local.",
-                                "hazard": "Substâncias compostas e produtos químicos em geral",
-                                "riskEvent": "Substâncias compostas e produtos químicos em geral",
+                                "hazard": "Gases e Vapores",
+                                "riskEvent": "Gases e Vapores",
                                 "consequence": "Intoxicação, dores de cabeça, vertigem",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com preparo de soluções químicas diversas.",
@@ -35346,17 +35376,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas e produtos químicos em geral",
                                 "existingControls": "Máscara"
                             },
                             {
                                 "id": "xlsx-r017",
-                                "title": "Exigência de postura inadequada",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com preparo de soluções químicas diversas.",
@@ -35371,13 +35402,13 @@ exports.CAMPUS_DATA = [
                             },
                             {
                                 "id": "xlsx-r018",
-                                "title": "Manipulação de produtos químicos",
+                                "title": "Manipulação de produtos químicos perigosos",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Manipulação de produtos químicos",
-                                "riskEvent": "Manipulação de produtos químicos",
+                                "hazard": "Manipulação de produtos químicos perigosos",
+                                "riskEvent": "Manipulação de produtos químicos perigosos",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com preparo de soluções químicas diversas.",
@@ -35389,6 +35420,7 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas ou Produtos Químicos em geral",
                                 "existingControls": "Jaleco, luvas e sapatos fechados, óculos de segurança e máscara."
                             },
                             {
@@ -35411,17 +35443,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Vidrarias diversas",
                                 "existingControls": "Luvas"
                             },
                             {
                                 "id": "xlsx-r020",
-                                "title": "Contato com superfícies aquecidas",
+                                "title": "Contato com superfícies quentes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Contato com superfícies aquecidas",
-                                "riskEvent": "Contato com superfícies aquecidas",
+                                "hazard": "Contato com superfícies quentes",
+                                "riskEvent": "Contato com superfícies quentes",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com preparo de soluções químicas diversas.",
@@ -35433,6 +35466,7 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Equipamentos diversos que transmitem calor",
                                 "existingControls": "Luvas"
                             },
                             {
@@ -35454,17 +35488,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Máquinas e equipamentos diveros"
                             },
                             {
                                 "id": "xlsx-r022",
-                                "title": "Risco de incêndio (substâncias químicas inflamáveis)",
+                                "title": "Armazenamento de materiais ou substâncias inflamáveis ou combustíveis",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Risco de incêndio (substâncias químicas inflamáveis)",
-                                "riskEvent": "Risco de incêndio (substâncias químicas inflamáveis)",
+                                "hazard": "Armazenamento de materiais ou substâncias inflamáveis ou combustíveis",
+                                "riskEvent": "Armazenamento de materiais ou substâncias inflamáveis ou combustíveis",
                                 "consequence": "Incêndios e explosões",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com preparo de soluções químicas diversas.",
@@ -35475,7 +35510,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "substâncias químicas inflamáveis"
                             }
                         ]
                     }
@@ -35500,13 +35536,13 @@ exports.CAMPUS_DATA = [
                         "risks": [
                             {
                                 "id": "xlsx-r094",
-                                "title": "Substâncias compostas e produtos químicos em geral",
+                                "title": "Gases e Vapores",
                                 "category": "Químicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco químicos identificado neste local.",
-                                "hazard": "Substâncias compostas e produtos químicos em geral",
-                                "riskEvent": "Substâncias compostas e produtos químicos em geral",
+                                "hazard": "Gases e Vapores",
+                                "riskEvent": "Gases e Vapores",
                                 "consequence": "Irritação na pele e nos olhos, alergias, intoxicações, queimaduras químicas e problemas respiratórios",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com preparo de soluções químicas diversas.",
@@ -35518,17 +35554,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas e produtos químicos em geral",
                                 "existingControls": "Capela de exaustão de gases e vapores, Chuveiro de emergência, Jaleco, luvas e sapatos fechados, óculos de segurança e máscara."
                             },
                             {
                                 "id": "xlsx-r095",
-                                "title": "Exigência de postura inadequada",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com preparo de soluções químicas diversas.",
@@ -35543,13 +35580,13 @@ exports.CAMPUS_DATA = [
                             },
                             {
                                 "id": "xlsx-r096",
-                                "title": "Manipulação de produtos químicos",
+                                "title": "Manipulação de produtos químicos perigosos",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Manipulação de produtos químicos",
-                                "riskEvent": "Manipulação de produtos químicos",
+                                "hazard": "Manipulação de produtos químicos perigosos",
+                                "riskEvent": "Manipulação de produtos químicos perigosos",
                                 "consequence": "Irritação na pele e nos olhos, alergias, intoxicações, queimaduras químicas e problemas respiratórios",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com preparo de soluções químicas diversas.",
@@ -35561,6 +35598,7 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas ou Produtos Químicos em geral",
                                 "existingControls": "Capela de exaustão de gases e vapores, Chuveiro de emergência, Jaleco, luvas e sapatos fechados, óculos de segurança e máscara"
                             },
                             {
@@ -35583,17 +35621,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Vidrarias diversas",
                                 "existingControls": "Luvas, sapatos fechados, óculos de segurança"
                             },
                             {
                                 "id": "xlsx-r098",
-                                "title": "Contato com superfícies aquecidas",
+                                "title": "Contato com superfícies quentes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Contato com superfícies aquecidas",
-                                "riskEvent": "Contato com superfícies aquecidas",
+                                "hazard": "Contato com superfícies quentes",
+                                "riskEvent": "Contato com superfícies quentes",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com preparo de soluções químicas diversas.",
@@ -35605,6 +35644,7 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Equipamentos diversos que transmitem calor",
                                 "existingControls": "Chuveiro de emergência, Jaleco, luvas e sapatos fechados, óculos de segurança e máscara"
                             },
                             {
@@ -35627,17 +35667,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Máquinas e equipamentos diveros",
                                 "existingControls": "Sapatos fechados"
                             },
                             {
                                 "id": "xlsx-r100",
-                                "title": "Risco de incêndio (botijão de gás e substâncias inflamáveis)",
+                                "title": "Utilização de gases (ou mistura) sob pressão",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Risco de incêndio (botijão de gás e substâncias inflamáveis)",
-                                "riskEvent": "Risco de incêndio (botijão de gás e substâncias inflamáveis)",
+                                "hazard": "Utilização de gases (ou mistura) sob pressão",
+                                "riskEvent": "Utilização de gases (ou mistura) sob pressão",
                                 "consequence": "Queimaduras, intoxicação por fumaça, problemas respiratórios, explosões, lesões graves e risco de morte",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com preparo de soluções químicas diversas.",
@@ -35649,6 +35690,7 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Botijão de gás glp",
                                 "existingControls": "Chuveiro de emergência, Jaleco, luvas e sapatos fechados, óculos de segurança e máscara"
                             }
                         ]
@@ -35668,13 +35710,13 @@ exports.CAMPUS_DATA = [
                         "risks": [
                             {
                                 "id": "xlsx-r082",
-                                "title": "Substâncias compostas e produtos químicos em geral",
+                                "title": "Gases e Vapores",
                                 "category": "Químicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco químicos identificado neste local.",
-                                "hazard": "Substâncias compostas e produtos químicos em geral",
-                                "riskEvent": "Substâncias compostas e produtos químicos em geral",
+                                "hazard": "Gases e Vapores",
+                                "riskEvent": "Gases e Vapores",
                                 "consequence": "Intoxicação, dores de cabeça, vertigem",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Realiza atividades de ensino com realização de aulas práticas com demonstração de testes de equipamentos (montagem, aferição e funcionamento), práticas com análise das propriedades hidráulicas e térmicas de fluidos e equipamentos. Realiza testes das propriedades físico-químicas e térmicas em equipamentos com utilização de soluções químicas, eventualmente.",
@@ -35685,17 +35727,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Substâncias compostas e produtos químicos em geral"
                             },
                             {
                                 "id": "xlsx-r083",
-                                "title": "Exigência de postura inadequada",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Realiza atividades de ensino com realização de aulas práticas com demonstração de testes de equipamentos (montagem, aferição e funcionamento), práticas com análise das propriedades hidráulicas e térmicas de fluidos e equipamentos. Realiza testes das propriedades físico-químicas e térmicas em equipamentos com utilização de soluções químicas, eventualmente.",
@@ -35710,13 +35753,13 @@ exports.CAMPUS_DATA = [
                             },
                             {
                                 "id": "xlsx-r084",
-                                "title": "Manipulação de produtos químicos",
+                                "title": "Manipulação de produtos químicos perigosos",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Manipulação de produtos químicos",
-                                "riskEvent": "Manipulação de produtos químicos",
+                                "hazard": "Manipulação de produtos químicos perigosos",
+                                "riskEvent": "Manipulação de produtos químicos perigosos",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Realiza atividades de ensino com realização de aulas práticas com demonstração de testes de equipamentos (montagem, aferição e funcionamento), práticas com análise das propriedades hidráulicas e térmicas de fluidos e equipamentos. Realiza testes das propriedades físico-químicas e térmicas em equipamentos com utilização de soluções químicas, eventualmente.",
@@ -35728,6 +35771,7 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas ou Produtos Químicos em geral",
                                 "existingControls": "Luvas"
                             },
                             {
@@ -35750,17 +35794,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Vidrarias diversas",
                                 "existingControls": "Luvas"
                             },
                             {
                                 "id": "xlsx-r086",
-                                "title": "Contato com superfícies aquecidas",
+                                "title": "Contato com superfícies quentes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Contato com superfícies aquecidas",
-                                "riskEvent": "Contato com superfícies aquecidas",
+                                "hazard": "Contato com superfícies quentes",
+                                "riskEvent": "Contato com superfícies quentes",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Realiza atividades de ensino com realização de aulas práticas com demonstração de testes de equipamentos (montagem, aferição e funcionamento), práticas com análise das propriedades hidráulicas e térmicas de fluidos e equipamentos. Realiza testes das propriedades físico-químicas e térmicas em equipamentos com utilização de soluções químicas, eventualmente.",
@@ -35771,7 +35816,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Equipamentos diversos que transmitem calor"
                             },
                             {
                                 "id": "xlsx-r087",
@@ -35792,7 +35838,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Máquinas e equipamentos diveros"
                             }
                         ]
                     },
@@ -35811,13 +35858,13 @@ exports.CAMPUS_DATA = [
                         "risks": [
                             {
                                 "id": "xlsx-r088",
-                                "title": "Substâncias compostas e produtos químicos em geral",
+                                "title": "Gases e Vapores",
                                 "category": "Químicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco químicos identificado neste local.",
-                                "hazard": "Substâncias compostas e produtos químicos em geral",
-                                "riskEvent": "Substâncias compostas e produtos químicos em geral",
+                                "hazard": "Gases e Vapores",
+                                "riskEvent": "Gases e Vapores",
                                 "consequence": "Intoxicação, dores de cabeça, vertigem",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Realiza atividades de ensino com aulas práticas para demonstração e análise das propriedades físico-químicas e térmicas de amostras em equipamentos. Realiza manipulação de produtos e reagentes químicos.",
@@ -35829,17 +35876,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas e produtos químicos em geral",
                                 "existingControls": "Máscaras de tecido"
                             },
                             {
                                 "id": "xlsx-r089",
-                                "title": "Exigência de postura inadequada",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Realiza atividades de ensino com aulas práticas para demonstração e análise das propriedades físico-químicas e térmicas de amostras em equipamentos. Realiza manipulação de produtos e reagentes químicos.",
@@ -35854,13 +35902,13 @@ exports.CAMPUS_DATA = [
                             },
                             {
                                 "id": "xlsx-r090",
-                                "title": "Manipulação de produtos químicos",
+                                "title": "Manipulação de produtos químicos perigosos",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Manipulação de produtos químicos",
-                                "riskEvent": "Manipulação de produtos químicos",
+                                "hazard": "Manipulação de produtos químicos perigosos",
+                                "riskEvent": "Manipulação de produtos químicos perigosos",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Realiza atividades de ensino com aulas práticas para demonstração e análise das propriedades físico-químicas e térmicas de amostras em equipamentos. Realiza manipulação de produtos e reagentes químicos.",
@@ -35872,17 +35920,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas ou Produtos Químicos em geral",
                                 "existingControls": "luvas (térmicas e nitrílicas)."
                             },
                             {
                                 "id": "xlsx-r091",
-                                "title": "manuseio de vidrarias",
+                                "title": "Manuseio de vidrarias",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "manuseio de vidrarias",
-                                "riskEvent": "manuseio de vidrarias",
+                                "hazard": "Manuseio de vidrarias",
+                                "riskEvent": "Manuseio de vidrarias",
                                 "consequence": "Cortes e ferimentos nas mãos",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Realiza atividades de ensino com aulas práticas para demonstração e análise das propriedades físico-químicas e térmicas de amostras em equipamentos. Realiza manipulação de produtos e reagentes químicos.",
@@ -35894,17 +35943,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Vidrarias diversas",
                                 "existingControls": "luvas (térmicas e nitrílicas)."
                             },
                             {
                                 "id": "xlsx-r092",
-                                "title": "contato com superfícies aquecidas",
+                                "title": "Contato com superfícies quentes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "contato com superfícies aquecidas",
-                                "riskEvent": "contato com superfícies aquecidas",
+                                "hazard": "Contato com superfícies quentes",
+                                "riskEvent": "Contato com superfícies quentes",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Realiza atividades de ensino com aulas práticas para demonstração e análise das propriedades físico-químicas e térmicas de amostras em equipamentos. Realiza manipulação de produtos e reagentes químicos.",
@@ -35915,7 +35965,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Equipamentos diversos que transmitem calor"
                             },
                             {
                                 "id": "xlsx-r093",
@@ -35936,7 +35987,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Máquinas e equipamentos diveros"
                             }
                         ]
                     }
@@ -35982,13 +36034,13 @@ exports.CAMPUS_DATA = [
                         "risks": [
                             {
                                 "id": "xlsx-r101",
-                                "title": "Exigência de postura inadequada",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com análise das propriedades e composições físicas, químicas e mineralógicas das amostras de polímeros.",
@@ -36003,14 +36055,14 @@ exports.CAMPUS_DATA = [
                             },
                             {
                                 "id": "xlsx-r102",
-                                "title": "Probabilidade de incêndio e parede com pontos de salitre",
+                                "title": "Sobrecarga elétrica",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Probabilidade de incêndio e parede com pontos de salitre",
-                                "riskEvent": "Probabilidade de incêndio e parede com pontos de salitre",
-                                "consequence": "Incêndios, queimaduras, intoxicação por fumaça e agravamento da umidade nas paredes, podendo causar mofo, alergias e problemas respiratórios",
+                                "hazard": "Sobrecarga elétrica",
+                                "riskEvent": "Sobrecarga elétrica",
+                                "consequence": "Incêndios, queimaduras, danos à sala e interrupção de atividades e morte",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com análise das propriedades e composições físicas, químicas e mineralógicas das amostras de polímeros.",
                                 "severity": 0,
@@ -36020,7 +36072,30 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Máquinas e equipamentos diversos"
+                            },
+                            {
+                                "id": "xlsx-r103",
+                                "title": "Piso, parede ou teto com rachaduras",
+                                "category": "Acidentes",
+                                "level": "baixo",
+                                "status": "pendente",
+                                "description": "Risco acidentes identificado neste local.",
+                                "hazard": "Piso, parede ou teto com rachaduras",
+                                "riskEvent": "Piso, parede ou teto com rachaduras",
+                                "consequence": "Não informado.",
+                                "exposedPublic": "Alunos e servidores",
+                                "circulation": "Atividades de ensino e pesquisa acadêmicas com análise das propriedades e composições físicas, químicas e mineralógicas das amostras de polímeros.",
+                                "severity": 0,
+                                "probability": 0,
+                                "riskScore": 0,
+                                "registeredAt": "2026-09-28",
+                                "updatedAt": "2026-09-28",
+                                "flags": [
+                                    "sem-classificacao"
+                                ],
+                                "source": "Parede com pontos de salitre"
                             }
                         ]
                     },
@@ -36038,14 +36113,14 @@ exports.CAMPUS_DATA = [
                         "exposureGroup": "Alunos, servidores e visitantes",
                         "risks": [
                             {
-                                "id": "xlsx-r103",
-                                "title": "Gases e Vapores (Substâncias Compostas ou Produtos Químicos em Geral)",
+                                "id": "xlsx-r104",
+                                "title": "Gases e Vapores",
                                 "category": "Químicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco químicos identificado neste local.",
-                                "hazard": "Gases e Vapores (Substâncias Compostas ou Produtos Químicos em Geral)",
-                                "riskEvent": "Gases e Vapores (Substâncias Compostas ou Produtos Químicos em Geral)",
+                                "hazard": "Gases e Vapores",
+                                "riskEvent": "Gases e Vapores",
                                 "consequence": "Irritação nos olhos e nas vias respiratórias, intoxicação, tontura, alergias e dificuldades respiratórias",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com análise de porosimetria: preparo de amostras, tratamento após análise, descarte, recuperação de mercúrio (manipulação).",
@@ -36057,17 +36132,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas e produtos químicos em geral",
                                 "existingControls": "Máscara respirador com filtro químico duplo (ca 11017), luvas, avental, sapato fechado."
                             },
                             {
-                                "id": "xlsx-r104",
-                                "title": "Exigência de postura inadequada",
+                                "id": "xlsx-r105",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com análise de porosimetria: preparo de amostras, tratamento após análise, descarte, recuperação de mercúrio (manipulação).",
@@ -36081,14 +36157,14 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r105",
-                                "title": "Acidentes com produtos químicos",
+                                "id": "xlsx-r106",
+                                "title": "Manipulação de produtos químicos perigosos",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Acidentes com produtos químicos",
-                                "riskEvent": "Acidentes com produtos químicos",
+                                "hazard": "Manipulação de produtos químicos perigosos",
+                                "riskEvent": "Manipulação de produtos químicos perigosos",
                                 "consequence": "Irritação na pele e nos olhos, alergias, intoxicações, queimaduras químicas e problemas respiratórios",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com análise de porosimetria: preparo de amostras, tratamento após análise, descarte, recuperação de mercúrio (manipulação).",
@@ -36100,17 +36176,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas ou Produtos Químicos em geral",
                                 "existingControls": "Máscara respirador com filtro químico duplo (ca 11017), luvas, avental, sapato fechado."
                             },
                             {
-                                "id": "xlsx-r106",
-                                "title": "acidentes com vidrarias",
+                                "id": "xlsx-r107",
+                                "title": "Utilização de vidrarias",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "acidentes com vidrarias",
-                                "riskEvent": "acidentes com vidrarias",
+                                "hazard": "Utilização de vidrarias",
+                                "riskEvent": "Utilização de vidrarias",
                                 "consequence": "Cortes, perfurações, ferimentos nas mãos e dedos e possíveis queimaduras em caso de contato com vidrarias aquecidas",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com análise de porosimetria: preparo de amostras, tratamento após análise, descarte, recuperação de mercúrio (manipulação).",
@@ -36122,17 +36199,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Vidrarias diversas",
                                 "existingControls": "Luvas, avental, sapato fechado."
                             },
                             {
-                                "id": "xlsx-r107",
-                                "title": "probabilidade de incêndio",
+                                "id": "xlsx-r108",
+                                "title": "Sobrecarga elétrica",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "probabilidade de incêndio",
-                                "riskEvent": "probabilidade de incêndio",
+                                "hazard": "Sobrecarga elétrica",
+                                "riskEvent": "Sobrecarga elétrica",
                                 "consequence": "Incêndios, queimaduras, intoxicação por fumaça",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com análise de porosimetria: preparo de amostras, tratamento após análise, descarte, recuperação de mercúrio (manipulação).",
@@ -36143,7 +36221,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Máquinas e equipamentos diversos"
                             }
                         ]
                     },
@@ -36162,13 +36241,13 @@ exports.CAMPUS_DATA = [
                         "risks": [
                             {
                                 "id": "xlsx-r023",
-                                "title": "Exigência de postura inadequada",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com análise de amostras por imagem microscópica.",
@@ -36183,14 +36262,14 @@ exports.CAMPUS_DATA = [
                             },
                             {
                                 "id": "xlsx-r024",
-                                "title": "Probabilidade de incêndio",
+                                "title": "Sobrecarga elétrica",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Probabilidade de incêndio",
-                                "riskEvent": "Probabilidade de incêndio",
-                                "consequence": "Morte, queimaduras, danos à sala e interrupção de atividades",
+                                "hazard": "Sobrecarga elétrica",
+                                "riskEvent": "Sobrecarga elétrica",
+                                "consequence": "Incêndios, queimaduras, danos à sala e interrupção de atividades e morte",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com análise de amostras por imagem microscópica.",
                                 "severity": 0,
@@ -36200,7 +36279,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Máquinas e equipamentos diversos"
                             },
                             {
                                 "id": "xlsx-r025",
@@ -36240,13 +36320,13 @@ exports.CAMPUS_DATA = [
                         "risks": [
                             {
                                 "id": "xlsx-r029",
-                                "title": "Exigência de postura inadequada",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com análise de resistência mecânica (impacto, flexão, compressão, tração) das amostras de polímeros.",
@@ -36261,13 +36341,13 @@ exports.CAMPUS_DATA = [
                             },
                             {
                                 "id": "xlsx-r030",
-                                "title": "Acidentes com prensas",
+                                "title": "Máquinas e equipamentos sem proteção adequada",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Acidentes com prensas",
-                                "riskEvent": "Acidentes com prensas",
+                                "hazard": "Máquinas e equipamentos sem proteção adequada",
+                                "riskEvent": "Máquinas e equipamentos sem proteção adequada",
                                 "consequence": "Amputações, esmagamentos, lesões irreversíveis",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com análise de resistência mecânica (impacto, flexão, compressão, tração) das amostras de polímeros.",
@@ -36278,7 +36358,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Máquinas e equipamentos diversas"
                             }
                         ]
                     }
@@ -36308,13 +36389,13 @@ exports.CAMPUS_DATA = [
                         "risks": [
                             {
                                 "id": "xlsx-r031",
-                                "title": "Exigência de postura inadequada",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com análise de ligações químicas de amostras.",
@@ -36343,14 +36424,14 @@ exports.CAMPUS_DATA = [
                         "exposureGroup": "Alunos, servidores e visitantes",
                         "risks": [
                             {
-                                "id": "xlsx-r108",
-                                "title": "Substâncias Compostas ou Produtos Químicos em Geral",
+                                "id": "xlsx-r109",
+                                "title": "Gases e Vapores",
                                 "category": "Químicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco químicos identificado neste local.",
-                                "hazard": "Substâncias Compostas ou Produtos Químicos em Geral",
-                                "riskEvent": "Substâncias Compostas ou Produtos Químicos em Geral",
+                                "hazard": "Gases e Vapores",
+                                "riskEvent": "Gases e Vapores",
                                 "consequence": "Irritação nos olhos e nas vias respiratórias, intoxicação, tontura, alergias e dificuldades respiratórias",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com análise do comportamento reológico de materiais polímeros.",
@@ -36362,17 +36443,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas e produtos químicos em geral",
                                 "existingControls": "Chuveiro com Lava olhos (no corredor, sem funcionar), Luva, jaleco, calçado fechado"
                             },
                             {
-                                "id": "xlsx-r109",
-                                "title": "Exigência de postura inadequada",
+                                "id": "xlsx-r110",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com análise do comportamento reológico de materiais polímeros.",
@@ -36386,14 +36468,14 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r110",
-                                "title": "Contato com superfícies aquecidas",
+                                "id": "xlsx-r111",
+                                "title": "Contato com superfícies quentes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Contato com superfícies aquecidas",
-                                "riskEvent": "Contato com superfícies aquecidas",
+                                "hazard": "Contato com superfícies quentes",
+                                "riskEvent": "Contato com superfícies quentes",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com análise do comportamento reológico de materiais polímeros.",
@@ -36405,18 +36487,19 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Equipamentos diversos que transmitem calor",
                                 "existingControls": "Luva, jaleco, calçado fechado"
                             },
                             {
-                                "id": "xlsx-r111",
-                                "title": "acidentes com materiais cortantes",
+                                "id": "xlsx-r112",
+                                "title": "Utilização de materiais ou ferramentas cortantes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "acidentes com materiais cortantes",
-                                "riskEvent": "acidentes com materiais cortantes",
-                                "consequence": "Cortes, perfurações, hemorragias, infecções e possível transmissão de doenças por materiais contaminados",
+                                "hazard": "Utilização de materiais ou ferramentas cortantes",
+                                "riskEvent": "Utilização de materiais ou ferramentas cortantes",
+                                "consequence": "Cortes e perfurações.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com análise do comportamento reológico de materiais polímeros.",
                                 "severity": 0,
@@ -36430,14 +36513,14 @@ exports.CAMPUS_DATA = [
                                 "existingControls": "Luva"
                             },
                             {
-                                "id": "xlsx-r112",
-                                "title": "probabilidade de incêndios",
+                                "id": "xlsx-r113",
+                                "title": "Sobrecarga elétrica",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "probabilidade de incêndios",
-                                "riskEvent": "probabilidade de incêndios",
+                                "hazard": "Sobrecarga elétrica",
+                                "riskEvent": "Sobrecarga elétrica",
                                 "consequence": "Incêndios, queimaduras, intoxicação por fumaça",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com análise do comportamento reológico de materiais polímeros.",
@@ -36448,17 +36531,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Máquinas e equipamentos diversos"
                             },
                             {
-                                "id": "xlsx-r113",
-                                "title": "acidentes com produtos químicos",
+                                "id": "xlsx-r114",
+                                "title": "Manipulação de produtos químicos perigosos",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "acidentes com produtos químicos",
-                                "riskEvent": "acidentes com produtos químicos",
+                                "hazard": "Manipulação de produtos químicos perigosos",
+                                "riskEvent": "Manipulação de produtos químicos perigosos",
                                 "consequence": "Irritação na pele e nos olhos, alergias, intoxicações, queimaduras químicas e problemas respiratórios",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com análise do comportamento reológico de materiais polímeros.",
@@ -36470,6 +36554,7 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas ou Produtos Químicos em geral",
                                 "existingControls": "Chuveiro com Lava olhos (no corredor, sem funcionar), Luva, jaleco, calçado fechado"
                             }
                         ]
@@ -36489,13 +36574,13 @@ exports.CAMPUS_DATA = [
                         "risks": [
                             {
                                 "id": "xlsx-r032",
-                                "title": "Exigência de postura inadequada",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com elaboração e produção de filamentos para impressão 3D.",
@@ -36510,13 +36595,13 @@ exports.CAMPUS_DATA = [
                             },
                             {
                                 "id": "xlsx-r033",
-                                "title": "Contato acidental com partes móveis de máquinas e equipamentos",
+                                "title": "Máquinas e equipamentos sem proteção adequada",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Contato acidental com partes móveis de máquinas e equipamentos",
-                                "riskEvent": "Contato acidental com partes móveis de máquinas e equipamentos",
+                                "hazard": "Máquinas e equipamentos sem proteção adequada",
+                                "riskEvent": "Máquinas e equipamentos sem proteção adequada",
                                 "consequence": "Esmagamento, cortes e fraturas",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com elaboração e produção de filamentos para impressão 3D.",
@@ -36527,7 +36612,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Máquinas e equipamentos diversos"
                             },
                             {
                                 "id": "xlsx-r034",
@@ -36552,13 +36638,13 @@ exports.CAMPUS_DATA = [
                             },
                             {
                                 "id": "xlsx-r035",
-                                "title": "Contato com superfícies aquecidas",
+                                "title": "Contato com superfícies quentes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Contato com superfícies aquecidas",
-                                "riskEvent": "Contato com superfícies aquecidas",
+                                "hazard": "Contato com superfícies quentes",
+                                "riskEvent": "Contato com superfícies quentes",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com elaboração e produção de filamentos para impressão 3D.",
@@ -36570,6 +36656,7 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Equipamentos diversos que transmitem calor",
                                 "existingControls": "Luvas"
                             }
                         ]
@@ -36588,14 +36675,14 @@ exports.CAMPUS_DATA = [
                         "exposureGroup": "Alunos, servidores e visitantes",
                         "risks": [
                             {
-                                "id": "xlsx-r114",
-                                "title": "Contato com composto químico",
+                                "id": "xlsx-r115",
+                                "title": "Gases e Vapores",
                                 "category": "Químicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco químicos identificado neste local.",
-                                "hazard": "Contato com composto químico",
-                                "riskEvent": "Contato com composto químico",
+                                "hazard": "Gases e Vapores",
+                                "riskEvent": "Gases e Vapores",
                                 "consequence": "Irritação na pele e nos olhos, alergias, intoxicações, queimaduras químicas e problemas respiratórios",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com análises das propriedades químicas e físicas de amostras de polímeros.\nAnálise da perda de massa dos plásticos em contato com a terra (conforme relatório 001/2020",
@@ -36607,17 +36694,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas e produtos químicos em geral",
                                 "existingControls": "Chuveiro com Lava olhos (no corredor, sem funcionar), Capela exaustora,\nLuva, Jaleco, Calçado Fechado"
                             },
                             {
-                                "id": "xlsx-r115",
-                                "title": "Exigência de postura inadequada",
+                                "id": "xlsx-r116",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com análises das propriedades químicas e físicas de amostras de polímeros.\nAnálise da perda de massa dos plásticos em contato com a terra (conforme relatório 001/2020",
@@ -36631,14 +36719,14 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r116",
-                                "title": "Acidentes com produtos químicos",
+                                "id": "xlsx-r117",
+                                "title": "Manipulação de produtos químicos perigosos",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Acidentes com produtos químicos",
-                                "riskEvent": "Acidentes com produtos químicos",
+                                "hazard": "Manipulação de produtos químicos perigosos",
+                                "riskEvent": "Manipulação de produtos químicos perigosos",
                                 "consequence": "Irritação na pele e nos olhos, alergias, intoxicações, queimaduras químicas e problemas respiratórios",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com análises das propriedades químicas e físicas de amostras de polímeros.\nAnálise da perda de massa dos plásticos em contato com a terra (conforme relatório 001/2020",
@@ -36650,17 +36738,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas ou Produtos Químicos em geral",
                                 "existingControls": "Chuveiro com Lava olhos (no corredor, sem funcionar), Capela exaustora,\nLuva, Jaleco, Calçado Fechado"
                             },
                             {
-                                "id": "xlsx-r117",
-                                "title": "Probabilidade de incêndios",
+                                "id": "xlsx-r118",
+                                "title": "Sobrecarga elétrica",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Probabilidade de incêndios",
-                                "riskEvent": "Probabilidade de incêndios",
+                                "hazard": "Sobrecarga elétrica",
+                                "riskEvent": "Sobrecarga elétrica",
                                 "consequence": "Incêndios, queimaduras, intoxicação por fumaça",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com análises das propriedades químicas e físicas de amostras de polímeros.\nAnálise da perda de massa dos plásticos em contato com a terra (conforme relatório 001/2020",
@@ -36671,17 +36760,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Máquinas e equipamentos diversos"
                             },
                             {
-                                "id": "xlsx-r118",
-                                "title": "Contato com superfícies aquecidas",
+                                "id": "xlsx-r119",
+                                "title": "Contato com superfícies quentes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Contato com superfícies aquecidas",
-                                "riskEvent": "Contato com superfícies aquecidas",
+                                "hazard": "Contato com superfícies quentes",
+                                "riskEvent": "Contato com superfícies quentes",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com análises das propriedades químicas e físicas de amostras de polímeros.\nAnálise da perda de massa dos plásticos em contato com a terra (conforme relatório 001/2020",
@@ -36693,18 +36783,19 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Equipamentos diversos que transmitem calor",
                                 "existingControls": "Luva"
                             },
                             {
-                                "id": "xlsx-r119",
-                                "title": "Acidentes com materiais cortantes",
+                                "id": "xlsx-r120",
+                                "title": "Utilização de materiais ou ferramentas cortantes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Acidentes com materiais cortantes",
-                                "riskEvent": "Acidentes com materiais cortantes",
-                                "consequence": "Cortes, perfurações, hemorragias, infecções e possível transmissão de doenças por materiais contaminados",
+                                "hazard": "Utilização de materiais ou ferramentas cortantes",
+                                "riskEvent": "Utilização de materiais ou ferramentas cortantes",
+                                "consequence": "Cortes e perfurações.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com análises das propriedades químicas e físicas de amostras de polímeros.\nAnálise da perda de massa dos plásticos em contato com a terra (conforme relatório 001/2020",
                                 "severity": 0,
@@ -36898,14 +36989,14 @@ exports.CAMPUS_DATA = [
                         "exposureGroup": "Alunos, servidores e visitantes",
                         "risks": [
                             {
-                                "id": "xlsx-r120",
-                                "title": "Exigência de postura inadequada",
+                                "id": "xlsx-r121",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Faz o preparo e beneficiamento das amostras (material cerâmico), com execução de atividade de britagem, moagem e peneiramento. Transformação dos materiais em pó.",
@@ -36919,7 +37010,7 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r121",
+                                "id": "xlsx-r122",
                                 "title": "Levantamento e transporte manual de peso",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
@@ -36937,17 +37028,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Atividades com sacos com amostras de materiais diversas"
                             },
                             {
-                                "id": "xlsx-r122",
-                                "title": "Contato com superfícies aquecidas",
+                                "id": "xlsx-r123",
+                                "title": "Contato com superfícies quentes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Contato com superfícies aquecidas",
-                                "riskEvent": "Contato com superfícies aquecidas",
+                                "hazard": "Contato com superfícies quentes",
+                                "riskEvent": "Contato com superfícies quentes",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Faz o preparo e beneficiamento das amostras (material cerâmico), com execução de atividade de britagem, moagem e peneiramento. Transformação dos materiais em pó.",
@@ -36959,10 +37051,11 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Equipamentos diversos que transmitem calor",
                                 "existingControls": "Luva de raspa"
                             },
                             {
-                                "id": "xlsx-r123",
+                                "id": "xlsx-r124",
                                 "title": "Iluminação inadequada",
                                 "category": "Acidentes",
                                 "level": "baixo",
@@ -36980,10 +37073,11 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Baixa luminosidade no ambiente"
                             },
                             {
-                                "id": "xlsx-r124",
+                                "id": "xlsx-r125",
                                 "title": "Armazenamento inadequado",
                                 "category": "Acidentes",
                                 "level": "baixo",
@@ -37001,10 +37095,11 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Materiais diversos"
                             },
                             {
-                                "id": "xlsx-r125",
+                                "id": "xlsx-r126",
                                 "title": "Arranjo físico inadequado",
                                 "category": "Acidentes",
                                 "level": "baixo",
@@ -37022,17 +37117,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Máquinas, equipamentos e materias distribuidos no ambiente"
                             },
                             {
-                                "id": "xlsx-r126",
-                                "title": "Probabilidade de incêndo",
+                                "id": "xlsx-r127",
+                                "title": "Sobrecarga elétrica",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Probabilidade de incêndo",
-                                "riskEvent": "Probabilidade de incêndo",
+                                "hazard": "Sobrecarga elétrica",
+                                "riskEvent": "Sobrecarga elétrica",
                                 "consequence": "Queimaduras, intoxicação por fumaça, danos materiais, lesões graves e risco de morte.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Faz o preparo e beneficiamento das amostras (material cerâmico), com execução de atividade de britagem, moagem e peneiramento. Transformação dos materiais em pó.",
@@ -37044,17 +37140,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Máquinas e equipamentos diversos",
                                 "existingControls": "Exaustores de parede."
                             },
                             {
-                                "id": "xlsx-r127",
-                                "title": "Lesões de membros por impacto de equipamentos",
+                                "id": "xlsx-r128",
+                                "title": "Máquinas e equipamentos sem proteção adequada",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Lesões de membros por impacto de equipamentos",
-                                "riskEvent": "Lesões de membros por impacto de equipamentos",
+                                "hazard": "Máquinas e equipamentos sem proteção adequada",
+                                "riskEvent": "Máquinas e equipamentos sem proteção adequada",
                                 "consequence": "Contusões, hematomas, cortes, fraturas",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Faz o preparo e beneficiamento das amostras (material cerâmico), com execução de atividade de britagem, moagem e peneiramento. Transformação dos materiais em pó.",
@@ -37065,7 +37162,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Máquinas e equipamentos diversos"
                             }
                         ]
                     },
@@ -37083,14 +37181,14 @@ exports.CAMPUS_DATA = [
                         "exposureGroup": "Alunos, servidores e visitantes",
                         "risks": [
                             {
-                                "id": "xlsx-r128",
-                                "title": "Exigência de postura inadequada",
+                                "id": "xlsx-r129",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de pesquisas acadêmicas com análise das propriedades físicas e térmicas de amostras de material cerâmico.",
@@ -37104,14 +37202,14 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r129",
-                                "title": "Lesões de membros por impacto de equipamentos",
+                                "id": "xlsx-r130",
+                                "title": "Máquinas e equipamentos sem proteção adequada",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Lesões de membros por impacto de equipamentos",
-                                "riskEvent": "Lesões de membros por impacto de equipamentos",
+                                "hazard": "Máquinas e equipamentos sem proteção adequada",
+                                "riskEvent": "Máquinas e equipamentos sem proteção adequada",
                                 "consequence": "Contusões, hematomas, cortes, fraturas e lesões musculares nos membros",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de pesquisas acadêmicas com análise das propriedades físicas e térmicas de amostras de material cerâmico.",
@@ -37122,10 +37220,11 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Máquinas e equipamentos diversos"
                             },
                             {
-                                "id": "xlsx-r130",
+                                "id": "xlsx-r131",
                                 "title": "Arranjo físico inadequado",
                                 "category": "Acidentes",
                                 "level": "baixo",
@@ -37146,14 +37245,14 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r131",
-                                "title": "Contato com superfícies aquecidas",
+                                "id": "xlsx-r132",
+                                "title": "Contato com superfícies quentes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Contato com superfícies aquecidas",
-                                "riskEvent": "Contato com superfícies aquecidas",
+                                "hazard": "Contato com superfícies quentes",
+                                "riskEvent": "Contato com superfícies quentes",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de pesquisas acadêmicas com análise das propriedades físicas e térmicas de amostras de material cerâmico.",
@@ -37165,17 +37264,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Equipamentos diversos que transmitem calor",
                                 "existingControls": "Luvas"
                             },
                             {
-                                "id": "xlsx-r132",
-                                "title": "Probabilidade de incêndios",
+                                "id": "xlsx-r133",
+                                "title": "Sobrecarga elétrica",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Probabilidade de incêndios",
-                                "riskEvent": "Probabilidade de incêndios",
+                                "hazard": "Sobrecarga elétrica",
+                                "riskEvent": "Sobrecarga elétrica",
                                 "consequence": "Queimaduras, intoxicação por fumaça, danos materiais, lesões graves e risco de morte.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de pesquisas acadêmicas com análise das propriedades físicas e térmicas de amostras de material cerâmico.",
@@ -37187,6 +37287,7 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Máquinas e equipamentos diversos",
                                 "existingControls": "Extintor de incêndio"
                             }
                         ]
@@ -37205,14 +37306,14 @@ exports.CAMPUS_DATA = [
                         "exposureGroup": "Alunos, servidores e visitantes",
                         "risks": [
                             {
-                                "id": "xlsx-r133",
-                                "title": "Exigência de postura inadequada",
+                                "id": "xlsx-r134",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com análise térmica de amostras de materiais cerâmicos e polímeros",
@@ -37226,14 +37327,14 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r134",
-                                "title": "Probabilidade de incêndios",
+                                "id": "xlsx-r135",
+                                "title": "Sobrecarga elétrica",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Probabilidade de incêndios",
-                                "riskEvent": "Probabilidade de incêndios",
+                                "hazard": "Sobrecarga elétrica",
+                                "riskEvent": "Sobrecarga elétrica",
                                 "consequence": "Queimaduras, intoxicação por fumaça, danos materiais, lesões graves e risco de morte.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com análise térmica de amostras de materiais cerâmicos e polímeros",
@@ -37245,10 +37346,11 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Máquinas e equipamentos diversos",
                                 "existingControls": "Extintor de incêndio"
                             },
                             {
-                                "id": "xlsx-r135",
+                                "id": "xlsx-r136",
                                 "title": "Armazenamento inadequado",
                                 "category": "Acidentes",
                                 "level": "baixo",
@@ -37269,14 +37371,14 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r136",
-                                "title": "Contato com superfícies aquecidas",
+                                "id": "xlsx-r137",
+                                "title": "Contato com superfícies quentes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Contato com superfícies aquecidas",
-                                "riskEvent": "Contato com superfícies aquecidas",
+                                "hazard": "Contato com superfícies quentes",
+                                "riskEvent": "Contato com superfícies quentes",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com análise térmica de amostras de materiais cerâmicos e polímeros",
@@ -37288,6 +37390,7 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Equipamentos diversos que transmitem calor",
                                 "existingControls": "Luvas"
                             }
                         ]
@@ -37307,13 +37410,13 @@ exports.CAMPUS_DATA = [
                         "risks": [
                             {
                                 "id": "xlsx-r043",
-                                "title": "Contato com composto químico",
+                                "title": "Gases e Vapores",
                                 "category": "Químicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco químicos identificado neste local.",
-                                "hazard": "Contato com composto químico",
-                                "riskEvent": "Contato com composto químico",
+                                "hazard": "Gases e Vapores",
+                                "riskEvent": "Gases e Vapores",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com com análise de síntese de amostras de materiais vítreos. Análise das propriedades químicas de amostras de materiais vítreos. Preparo de soluções químicas diversas.",
@@ -37325,17 +37428,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas e produtos químicos em geral",
                                 "existingControls": "Luvas"
                             },
                             {
                                 "id": "xlsx-r044",
-                                "title": "Exigência de postura inadequada",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com com análise de síntese de amostras de materiais vítreos. Análise das propriedades químicas de amostras de materiais vítreos. Preparo de soluções químicas diversas.",
@@ -37350,13 +37454,13 @@ exports.CAMPUS_DATA = [
                             },
                             {
                                 "id": "xlsx-r045",
-                                "title": "Armazenamento inadequado",
+                                "title": "Armazenamento de materiais ou substâncias inflamáveis ou combustíveis",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Armazenamento inadequado",
-                                "riskEvent": "Armazenamento inadequado",
+                                "hazard": "Armazenamento de materiais ou substâncias inflamáveis ou combustíveis",
+                                "riskEvent": "Armazenamento de materiais ou substâncias inflamáveis ou combustíveis",
                                 "consequence": "Vazamentos e contaminação",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com com análise de síntese de amostras de materiais vítreos. Análise das propriedades químicas de amostras de materiais vítreos. Preparo de soluções químicas diversas.",
@@ -37367,17 +37471,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Substâncias compostas ou Produtos Químicos em geral"
                             },
                             {
                                 "id": "xlsx-r046",
-                                "title": "Acidentes com produtos químicos",
+                                "title": "Manipulação de produtos químicos perigosos",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Acidentes com produtos químicos",
-                                "riskEvent": "Acidentes com produtos químicos",
+                                "hazard": "Manipulação de produtos químicos perigosos",
+                                "riskEvent": "Manipulação de produtos químicos perigosos",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com com análise de síntese de amostras de materiais vítreos. Análise das propriedades químicas de amostras de materiais vítreos. Preparo de soluções químicas diversas.",
@@ -37389,17 +37494,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas ou Produtos Químicos em geral",
                                 "existingControls": "Luvas"
                             },
                             {
                                 "id": "xlsx-r047",
-                                "title": "Contato com superfícies aquecidas",
+                                "title": "Contato com superfícies quentes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Contato com superfícies aquecidas",
-                                "riskEvent": "Contato com superfícies aquecidas",
+                                "hazard": "Contato com superfícies quentes",
+                                "riskEvent": "Contato com superfícies quentes",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com com análise de síntese de amostras de materiais vítreos. Análise das propriedades químicas de amostras de materiais vítreos. Preparo de soluções químicas diversas.",
@@ -37411,18 +37517,19 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Equipamentos diversos que transmitem calor",
                                 "existingControls": "Luvas"
                             },
                             {
                                 "id": "xlsx-r048",
-                                "title": "Probabilidade de incêndios",
+                                "title": "Sobrecarga elétrica",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Probabilidade de incêndios",
-                                "riskEvent": "Probabilidade de incêndios",
-                                "consequence": "Morte, queimaduras, danos à sala e interrupção de atividades",
+                                "hazard": "Sobrecarga elétrica",
+                                "riskEvent": "Sobrecarga elétrica",
+                                "consequence": "Incêndios, queimaduras, danos à sala e interrupção de atividades e morte",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com com análise de síntese de amostras de materiais vítreos. Análise das propriedades químicas de amostras de materiais vítreos. Preparo de soluções químicas diversas.",
                                 "severity": 0,
@@ -37432,17 +37539,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Máquinas e equipamentos diversos"
                             },
                             {
                                 "id": "xlsx-r049",
-                                "title": "Acidentes com vidrarias",
+                                "title": "Utilização de vidrarias",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Acidentes com vidrarias",
-                                "riskEvent": "Acidentes com vidrarias",
+                                "hazard": "Utilização de vidrarias",
+                                "riskEvent": "Utilização de vidrarias",
                                 "consequence": "Cortes e ferimentos nas mãos",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com com análise de síntese de amostras de materiais vítreos. Análise das propriedades químicas de amostras de materiais vítreos. Preparo de soluções químicas diversas.",
@@ -37454,6 +37562,7 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Vidrarias diversas",
                                 "existingControls": "Luvas"
                             }
                         ]
@@ -37473,13 +37582,13 @@ exports.CAMPUS_DATA = [
                         "risks": [
                             {
                                 "id": "xlsx-r053",
-                                "title": "Exigência de postura inadequada",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisa acadêmica com análise térmica de amostras e compostos de materiais sólidos e calcinação de amostras (Tratamento térmico de materiais sólidos)",
@@ -37494,13 +37603,13 @@ exports.CAMPUS_DATA = [
                             },
                             {
                                 "id": "xlsx-r054",
-                                "title": "Contato com superfícies aquecidas",
+                                "title": "Contato com superfícies quentes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Contato com superfícies aquecidas",
-                                "riskEvent": "Contato com superfícies aquecidas",
+                                "hazard": "Contato com superfícies quentes",
+                                "riskEvent": "Contato com superfícies quentes",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisa acadêmica com análise térmica de amostras e compostos de materiais sólidos e calcinação de amostras (Tratamento térmico de materiais sólidos)",
@@ -37511,18 +37620,19 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Equipamentos diversos que transmitem calor"
                             },
                             {
                                 "id": "xlsx-r055",
-                                "title": "Probabilidade de incêndios",
+                                "title": "Sobrecarga elétrica",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Probabilidade de incêndios",
-                                "riskEvent": "Probabilidade de incêndios",
-                                "consequence": "Morte, queimaduras, danos à sala e interrupção de atividades",
+                                "hazard": "Sobrecarga elétrica",
+                                "riskEvent": "Sobrecarga elétrica",
+                                "consequence": "Incêndios, queimaduras, danos à sala e interrupção de atividades e morte",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisa acadêmica com análise térmica de amostras e compostos de materiais sólidos e calcinação de amostras (Tratamento térmico de materiais sólidos)",
                                 "severity": 0,
@@ -37532,17 +37642,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Máquinas e equipamentos diversos"
                             },
                             {
                                 "id": "xlsx-r056",
-                                "title": "Acidentes com vidrarias",
+                                "title": "Utilização de vidrarias",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Acidentes com vidrarias",
-                                "riskEvent": "Acidentes com vidrarias",
+                                "hazard": "Utilização de vidrarias",
+                                "riskEvent": "Utilização de vidrarias",
                                 "consequence": "Cortes e ferimentos nas mãos",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisa acadêmica com análise térmica de amostras e compostos de materiais sólidos e calcinação de amostras (Tratamento térmico de materiais sólidos)",
@@ -37554,17 +37665,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Vidrarias diversas",
                                 "existingControls": "Luvas"
                             },
                             {
                                 "id": "xlsx-r057",
-                                "title": "Lesões de membros por contato com equipamento moedor elétrico",
+                                "title": "Máquinas e equipamentos sem proteção adequada",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Lesões de membros por contato com equipamento moedor elétrico",
-                                "riskEvent": "Lesões de membros por contato com equipamento moedor elétrico",
+                                "hazard": "Máquinas e equipamentos sem proteção adequada",
+                                "riskEvent": "Máquinas e equipamentos sem proteção adequada",
                                 "consequence": "Esmagamentos, amputações e cortes profundos",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisa acadêmica com análise térmica de amostras e compostos de materiais sólidos e calcinação de amostras (Tratamento térmico de materiais sólidos)",
@@ -37575,7 +37687,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Equipamento moedor elétrico"
                             }
                         ]
                     }
@@ -37599,14 +37712,14 @@ exports.CAMPUS_DATA = [
                         "exposureGroup": "Alunos, servidores e visitantes",
                         "risks": [
                             {
-                                "id": "xlsx-r137",
-                                "title": "Contato com composto químico",
+                                "id": "xlsx-r138",
+                                "title": "Gases e Vapores",
                                 "category": "Químicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco químicos identificado neste local.",
-                                "hazard": "Contato com composto químico",
-                                "riskEvent": "Contato com composto químico",
+                                "hazard": "Gases e Vapores",
+                                "riskEvent": "Gases e Vapores",
                                 "consequence": "Irritação na pele e nos olhos, alergias, intoxicações, queimaduras químicas e problemas respiratórios",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com análise das propriedades químicas e reológicas de amostras de materiais cerâmicos. Preparo de soluções químicas diversas para análises de amostras de materiais cerâmicos.",
@@ -37618,17 +37731,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas e produtos químicos em geral",
                                 "existingControls": "Chuveiro de emergência e Lava olhos (Não instalados), respirador semifacial com filtro químico"
                             },
                             {
-                                "id": "xlsx-r138",
-                                "title": "Exigência de postura inadequada",
+                                "id": "xlsx-r139",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com análise das propriedades químicas e reológicas de amostras de materiais cerâmicos. Preparo de soluções químicas diversas para análises de amostras de materiais cerâmicos.",
@@ -37642,7 +37756,7 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r139",
+                                "id": "xlsx-r140",
                                 "title": "Armazenamento inadequado",
                                 "category": "Acidentes",
                                 "level": "baixo",
@@ -37664,14 +37778,14 @@ exports.CAMPUS_DATA = [
                                 "existingControls": "Luva nitrílica, luva de raspa"
                             },
                             {
-                                "id": "xlsx-r140",
-                                "title": "Acidentes com produtos químicos",
+                                "id": "xlsx-r141",
+                                "title": "Manipulação de produtos químicos perigosos",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Acidentes com produtos químicos",
-                                "riskEvent": "Acidentes com produtos químicos",
+                                "hazard": "Manipulação de produtos químicos perigosos",
+                                "riskEvent": "Manipulação de produtos químicos perigosos",
                                 "consequence": "Irritação na pele e nos olhos, alergias, intoxicações, queimaduras químicas e problemas respiratórios",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com análise das propriedades químicas e reológicas de amostras de materiais cerâmicos. Preparo de soluções químicas diversas para análises de amostras de materiais cerâmicos.",
@@ -37683,17 +37797,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas ou Produtos Químicos em geral",
                                 "existingControls": "Chuveiro de emergência e Lava olhos (Não instalados), respirador semifacial com filtro químico"
                             },
                             {
-                                "id": "xlsx-r141",
-                                "title": "Contato com superfícies aquecidas",
+                                "id": "xlsx-r142",
+                                "title": "Contato com superfícies quentes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Contato com superfícies aquecidas",
-                                "riskEvent": "Contato com superfícies aquecidas",
+                                "hazard": "Contato com superfícies quentes",
+                                "riskEvent": "Contato com superfícies quentes",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com análise das propriedades químicas e reológicas de amostras de materiais cerâmicos. Preparo de soluções químicas diversas para análises de amostras de materiais cerâmicos.",
@@ -37705,17 +37820,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Equipamentos diversos que transmitem calor",
                                 "existingControls": "Luva nitrílica, luva de raspa"
                             },
                             {
-                                "id": "xlsx-r142",
-                                "title": "Probabilidade de incêndios",
+                                "id": "xlsx-r143",
+                                "title": "Sobrecarga elétrica",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Probabilidade de incêndios",
-                                "riskEvent": "Probabilidade de incêndios",
+                                "hazard": "Sobrecarga elétrica",
+                                "riskEvent": "Sobrecarga elétrica",
                                 "consequence": "Queimaduras, intoxicação por fumaça, danos materiais, lesões graves e risco de morte.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com análise das propriedades químicas e reológicas de amostras de materiais cerâmicos. Preparo de soluções químicas diversas para análises de amostras de materiais cerâmicos.",
@@ -37727,17 +37843,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Máquinas e equipamentos diversos",
                                 "existingControls": "Extintor de incêndio"
                             },
                             {
-                                "id": "xlsx-r143",
-                                "title": "Acidentes com vidrarias",
+                                "id": "xlsx-r144",
+                                "title": "Utilização de vidrarias",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Acidentes com vidrarias",
-                                "riskEvent": "Acidentes com vidrarias",
+                                "hazard": "Utilização de vidrarias",
+                                "riskEvent": "Utilização de vidrarias",
                                 "consequence": "Cortes, perfurações, ferimentos nas mãos e dedos e possíveis queimaduras em caso de contato com vidrarias aquecidas",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com análise das propriedades químicas e reológicas de amostras de materiais cerâmicos. Preparo de soluções químicas diversas para análises de amostras de materiais cerâmicos.",
@@ -37749,6 +37866,7 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Vidrarias diversas",
                                 "existingControls": "Luva nitrílica, luva de raspa"
                             }
                         ]
@@ -37768,13 +37886,13 @@ exports.CAMPUS_DATA = [
                         "risks": [
                             {
                                 "id": "xlsx-r026",
-                                "title": "Exigência de postura inadequada",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com realização de análise das propriedades físicas e químicas de amostras de materiais..\nObs: As amostras com soluções químicas analisadas neste laboratório são preparadas no Laboratório de Processamento.",
@@ -37789,13 +37907,13 @@ exports.CAMPUS_DATA = [
                             },
                             {
                                 "id": "xlsx-r027",
-                                "title": "Contato com superfícies aquecidas",
+                                "title": "Contato com superfícies quentes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Contato com superfícies aquecidas",
-                                "riskEvent": "Contato com superfícies aquecidas",
+                                "hazard": "Contato com superfícies quentes",
+                                "riskEvent": "Contato com superfícies quentes",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com realização de análise das propriedades físicas e químicas de amostras de materiais..\nObs: As amostras com soluções químicas analisadas neste laboratório são preparadas no Laboratório de Processamento.",
@@ -37807,18 +37925,19 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Equipamentos diversos que transmitem calor",
                                 "existingControls": "Luvas"
                             },
                             {
                                 "id": "xlsx-r028",
-                                "title": "Probabilidade de incêndios",
+                                "title": "Sobrecarga elétrica",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Probabilidade de incêndios",
-                                "riskEvent": "Probabilidade de incêndios",
-                                "consequence": "Morte, queimaduras, danos à sala e interrupção de atividades",
+                                "hazard": "Sobrecarga elétrica",
+                                "riskEvent": "Sobrecarga elétrica",
+                                "consequence": "Incêndios, queimaduras, danos à sala e interrupção de atividades e morte",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com realização de análise das propriedades físicas e químicas de amostras de materiais..\nObs: As amostras com soluções químicas analisadas neste laboratório são preparadas no Laboratório de Processamento.",
                                 "severity": 0,
@@ -37828,17 +37947,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Máquinas e equipamentos diversos"
                             },
                             {
-                                "id": "xlsx-r144",
-                                "title": "Exigência de postura inadequada",
+                                "id": "xlsx-r145",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com realização de análise das propriedades físicas e químicas de amostras de materiais..\nObs: As amostras com soluções químicas analisadas neste laboratório são preparadas no Laboratório de Processamento.",
@@ -37852,14 +37972,14 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r145",
-                                "title": "Contato com superfícies aquecidas",
+                                "id": "xlsx-r146",
+                                "title": "Contato com superfícies quentes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Contato com superfícies aquecidas",
-                                "riskEvent": "Contato com superfícies aquecidas",
+                                "hazard": "Contato com superfícies quentes",
+                                "riskEvent": "Contato com superfícies quentes",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com realização de análise das propriedades físicas e químicas de amostras de materiais..\nObs: As amostras com soluções químicas analisadas neste laboratório são preparadas no Laboratório de Processamento.",
@@ -37871,17 +37991,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Equipamentos diversos que transmitem calor",
                                 "existingControls": "Chuveiro de emergência"
                             },
                             {
-                                "id": "xlsx-r146",
-                                "title": "Probabilidade de incêndios",
+                                "id": "xlsx-r147",
+                                "title": "Sobrecarga elétrica",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Probabilidade de incêndios",
-                                "riskEvent": "Probabilidade de incêndios",
+                                "hazard": "Sobrecarga elétrica",
+                                "riskEvent": "Sobrecarga elétrica",
                                 "consequence": "Queimaduras, intoxicação por fumaça, danos materiais, lesões graves e risco de morte.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com realização de análise das propriedades físicas e químicas de amostras de materiais..\nObs: As amostras com soluções químicas analisadas neste laboratório são preparadas no Laboratório de Processamento.",
@@ -37893,6 +38014,7 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Máquinas e equipamentos diversos",
                                 "existingControls": "Extintor de incêndio"
                             }
                         ]
@@ -37911,14 +38033,14 @@ exports.CAMPUS_DATA = [
                         "exposureGroup": "Alunos, servidores e visitantes",
                         "risks": [
                             {
-                                "id": "xlsx-r147",
-                                "title": "Contato com composto químico",
+                                "id": "xlsx-r148",
+                                "title": "Gases e Vapores",
                                 "category": "Químicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco químicos identificado neste local.",
-                                "hazard": "Contato com composto químico",
-                                "riskEvent": "Contato com composto químico",
+                                "hazard": "Gases e Vapores",
+                                "riskEvent": "Gases e Vapores",
                                 "consequence": "Irritação na pele e nos olhos, alergias, intoxicações, queimaduras químicas e problemas respiratórios",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com análise das propriedades químicas e desenvolvimento e análise de nanofibras (material cerâmico e polímeros). Realiza o preparo de soluções químicas com produtos e reagentes diversos",
@@ -37930,17 +38052,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas e produtos químicos em geral",
                                 "existingControls": "Luva nitrílica, luva de raspa, respirador semifacial com filtro químico, jaleco, sapato fechado, Chuveiro de emergência e Lava olhos (Não instalados), Capela exaustora"
                             },
                             {
-                                "id": "xlsx-r148",
-                                "title": "Exigência de postura inadequada",
+                                "id": "xlsx-r149",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com análise das propriedades químicas e desenvolvimento e análise de nanofibras (material cerâmico e polímeros). Realiza o preparo de soluções químicas com produtos e reagentes diversos",
@@ -37954,7 +38077,7 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r149",
+                                "id": "xlsx-r150",
                                 "title": "Armazenamento inadequado",
                                 "category": "Acidentes",
                                 "level": "baixo",
@@ -37976,14 +38099,14 @@ exports.CAMPUS_DATA = [
                                 "existingControls": "Luva nitrílica, luva de raspa"
                             },
                             {
-                                "id": "xlsx-r150",
-                                "title": "Acidentes com produtos químicos",
+                                "id": "xlsx-r151",
+                                "title": "Manipulação de produtos químicos perigosos",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Acidentes com produtos químicos",
-                                "riskEvent": "Acidentes com produtos químicos",
+                                "hazard": "Manipulação de produtos químicos perigosos",
+                                "riskEvent": "Manipulação de produtos químicos perigosos",
                                 "consequence": "Irritação na pele e nos olhos, alergias, intoxicações, queimaduras químicas e problemas respiratórios",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com análise das propriedades químicas e desenvolvimento e análise de nanofibras (material cerâmico e polímeros). Realiza o preparo de soluções químicas com produtos e reagentes diversos",
@@ -37995,17 +38118,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas ou Produtos Químicos em geral",
                                 "existingControls": "Luva nitrílica, luva de raspa, respirador semifacial com filtro químico, jaleco, sapato fechado, Chuveiro de emergência e Lava olhos (Não instalados), Capela exaustora"
                             },
                             {
-                                "id": "xlsx-r151",
-                                "title": "Contato com superfícies aquecidas",
+                                "id": "xlsx-r152",
+                                "title": "Contato com superfícies quentes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Contato com superfícies aquecidas",
-                                "riskEvent": "Contato com superfícies aquecidas",
+                                "hazard": "Contato com superfícies quentes",
+                                "riskEvent": "Contato com superfícies quentes",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com análise das propriedades químicas e desenvolvimento e análise de nanofibras (material cerâmico e polímeros). Realiza o preparo de soluções químicas com produtos e reagentes diversos",
@@ -38017,17 +38141,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Equipamentos diversos que transmitem calor",
                                 "existingControls": "Luva nitrílica, luva de raspa"
                             },
                             {
-                                "id": "xlsx-r152",
-                                "title": "Probabilidade de incêndios",
+                                "id": "xlsx-r153",
+                                "title": "Sobrecarga elétrica",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Probabilidade de incêndios",
-                                "riskEvent": "Probabilidade de incêndios",
+                                "hazard": "Sobrecarga elétrica",
+                                "riskEvent": "Sobrecarga elétrica",
                                 "consequence": "Queimaduras, intoxicação por fumaça, danos materiais, lesões graves e risco de morte.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com análise das propriedades químicas e desenvolvimento e análise de nanofibras (material cerâmico e polímeros). Realiza o preparo de soluções químicas com produtos e reagentes diversos",
@@ -38039,17 +38164,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Máquinas e equipamentos diversos",
                                 "existingControls": "Extintor de incêndio"
                             },
                             {
-                                "id": "xlsx-r153",
-                                "title": "Acidentes com vidrarias",
+                                "id": "xlsx-r154",
+                                "title": "Utilização de vidrarias",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Acidentes com vidrarias",
-                                "riskEvent": "Acidentes com vidrarias",
+                                "hazard": "Utilização de vidrarias",
+                                "riskEvent": "Utilização de vidrarias",
                                 "consequence": "Cortes, perfurações, ferimentos nas mãos e dedos e possíveis queimaduras em caso de contato com vidrarias aquecidas",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com análise das propriedades químicas e desenvolvimento e análise de nanofibras (material cerâmico e polímeros). Realiza o preparo de soluções químicas com produtos e reagentes diversos",
@@ -38061,6 +38187,7 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Vidrarias diversas",
                                 "existingControls": "Luva nitrílica, luva de raspa"
                             }
                         ]
@@ -38079,14 +38206,14 @@ exports.CAMPUS_DATA = [
                         "exposureGroup": "Alunos, servidores e visitantes",
                         "risks": [
                             {
-                                "id": "xlsx-r154",
-                                "title": "Contato com composto químico",
+                                "id": "xlsx-r155",
+                                "title": "Gases e Vapores",
                                 "category": "Químicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco químicos identificado neste local.",
-                                "hazard": "Contato com composto químico",
-                                "riskEvent": "Contato com composto químico",
+                                "hazard": "Gases e Vapores",
+                                "riskEvent": "Gases e Vapores",
                                 "consequence": "Irritação na pele e nos olhos, alergias, intoxicações, queimaduras químicas e problemas respiratórios",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com análise das propriedades térmicas e químicas de amostras de materiais cerâmicos e polímeros. Realiza o preparo de soluções químicas diversas, inclusive para ser utilizado em outros laboratórios (Caracterização e Reologia).",
@@ -38098,17 +38225,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas e produtos químicos em geral",
                                 "existingControls": "Chuveiro de emergência e Lava olhos (Não instalados), Capela Exaustora, Luva nitrílica, luva de raspa, respirador semifacial com filtro químico, jaleco, sapato fechado"
                             },
                             {
-                                "id": "xlsx-r155",
-                                "title": "Exigência de postura inadequada",
+                                "id": "xlsx-r156",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com análise das propriedades térmicas e químicas de amostras de materiais cerâmicos e polímeros. Realiza o preparo de soluções químicas diversas, inclusive para ser utilizado em outros laboratórios (Caracterização e Reologia).",
@@ -38122,7 +38250,7 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r156",
+                                "id": "xlsx-r157",
                                 "title": "Armazenamento inadequado",
                                 "category": "Acidentes",
                                 "level": "baixo",
@@ -38144,14 +38272,14 @@ exports.CAMPUS_DATA = [
                                 "existingControls": "Luva nitrílica, luva de raspa, Capela Exaustora"
                             },
                             {
-                                "id": "xlsx-r157",
-                                "title": "Acidentes com produtos químicos",
+                                "id": "xlsx-r158",
+                                "title": "Manipulação de produtos químicos perigosos",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Acidentes com produtos químicos",
-                                "riskEvent": "Acidentes com produtos químicos",
+                                "hazard": "Manipulação de produtos químicos perigosos",
+                                "riskEvent": "Manipulação de produtos químicos perigosos",
                                 "consequence": "Irritação na pele e nos olhos, alergias, intoxicações, queimaduras químicas e problemas respiratórios",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com análise das propriedades térmicas e químicas de amostras de materiais cerâmicos e polímeros. Realiza o preparo de soluções químicas diversas, inclusive para ser utilizado em outros laboratórios (Caracterização e Reologia).",
@@ -38163,17 +38291,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas ou Produtos Químicos em geral",
                                 "existingControls": "Chuveiro de emergência e Lava olhos (Não instalados), Capela Exaustora, Luva nitrílica, luva de raspa, respirador semifacial com filtro químico, jaleco, sapato fechado"
                             },
                             {
-                                "id": "xlsx-r158",
-                                "title": "Contato com superfícies aquecidas",
+                                "id": "xlsx-r159",
+                                "title": "Contato com superfícies quentes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Contato com superfícies aquecidas",
-                                "riskEvent": "Contato com superfícies aquecidas",
+                                "hazard": "Contato com superfícies quentes",
+                                "riskEvent": "Contato com superfícies quentes",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com análise das propriedades térmicas e químicas de amostras de materiais cerâmicos e polímeros. Realiza o preparo de soluções químicas diversas, inclusive para ser utilizado em outros laboratórios (Caracterização e Reologia).",
@@ -38185,17 +38314,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Equipamentos diversos que transmitem calor",
                                 "existingControls": "Luva nitrílica, luva de raspa"
                             },
                             {
-                                "id": "xlsx-r159",
-                                "title": "Probabilidade de incêndios",
+                                "id": "xlsx-r160",
+                                "title": "Sobrecarga elétrica",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Probabilidade de incêndios",
-                                "riskEvent": "Probabilidade de incêndios",
+                                "hazard": "Sobrecarga elétrica",
+                                "riskEvent": "Sobrecarga elétrica",
                                 "consequence": "Queimaduras, intoxicação por fumaça, danos materiais, lesões graves e risco de morte.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com análise das propriedades térmicas e químicas de amostras de materiais cerâmicos e polímeros. Realiza o preparo de soluções químicas diversas, inclusive para ser utilizado em outros laboratórios (Caracterização e Reologia).",
@@ -38207,6 +38337,7 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Máquinas e equipamentos diversos",
                                 "existingControls": "Extintor de incêndio"
                             }
                         ]
@@ -38225,14 +38356,14 @@ exports.CAMPUS_DATA = [
                         "exposureGroup": "Alunos, servidores e visitantes",
                         "risks": [
                             {
-                                "id": "xlsx-r160",
-                                "title": "Exigência de postura inadequada",
+                                "id": "xlsx-r161",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com realização de análise das propriedades mecânicas de amostras de material cerâmica (análise de resistência, avaliando seu comportamento diante de cargas dinâmicas).",
@@ -38246,14 +38377,14 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r161",
-                                "title": "Lesões de membros por impacto de equipamentos",
+                                "id": "xlsx-r162",
+                                "title": "Máquinas e equipamentos sem proteção adequada",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Lesões de membros por impacto de equipamentos",
-                                "riskEvent": "Lesões de membros por impacto de equipamentos",
+                                "hazard": "Máquinas e equipamentos sem proteção adequada",
+                                "riskEvent": "Máquinas e equipamentos sem proteção adequada",
                                 "consequence": "Contusões, hematomas, cortes, fraturas e lesões musculares nos membros",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com realização de análise das propriedades mecânicas de amostras de material cerâmica (análise de resistência, avaliando seu comportamento diante de cargas dinâmicas).",
@@ -38264,17 +38395,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Máquinas e equipamentos diversos"
                             },
                             {
-                                "id": "xlsx-r162",
-                                "title": "Contato com superfícies aquecidas",
+                                "id": "xlsx-r163",
+                                "title": "Contato com superfícies quentes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Contato com superfícies aquecidas",
-                                "riskEvent": "Contato com superfícies aquecidas",
+                                "hazard": "Contato com superfícies quentes",
+                                "riskEvent": "Contato com superfícies quentes",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com realização de análise das propriedades mecânicas de amostras de material cerâmica (análise de resistência, avaliando seu comportamento diante de cargas dinâmicas).",
@@ -38286,17 +38418,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Equipamentos diversos que transmitem calor",
                                 "existingControls": "Luvas"
                             },
                             {
-                                "id": "xlsx-r163",
-                                "title": "Probabilidade de incêndios",
+                                "id": "xlsx-r164",
+                                "title": "Sobrecarga elétrica",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Probabilidade de incêndios",
-                                "riskEvent": "Probabilidade de incêndios",
+                                "hazard": "Sobrecarga elétrica",
+                                "riskEvent": "Sobrecarga elétrica",
                                 "consequence": "Queimaduras, intoxicação por fumaça, danos materiais, lesões graves e risco de morte.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisas acadêmicas com realização de análise das propriedades mecânicas de amostras de material cerâmica (análise de resistência, avaliando seu comportamento diante de cargas dinâmicas).",
@@ -38308,6 +38441,7 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Máquinas e equipamentos diversos",
                                 "existingControls": "Extintor de incêndio"
                             }
                         ]
@@ -38326,14 +38460,14 @@ exports.CAMPUS_DATA = [
                         "exposureGroup": "Alunos, servidores e visitantes",
                         "risks": [
                             {
-                                "id": "xlsx-r164",
-                                "title": "Exigência de postura inadequada",
+                                "id": "xlsx-r165",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisa acadêmica com análise de fluxo com amostras de material cerâmico.",
@@ -38347,14 +38481,14 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r165",
-                                "title": "Probabilidade de incêndios",
+                                "id": "xlsx-r166",
+                                "title": "Sobrecarga elétrica",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Probabilidade de incêndios",
-                                "riskEvent": "Probabilidade de incêndios",
+                                "hazard": "Sobrecarga elétrica",
+                                "riskEvent": "Sobrecarga elétrica",
                                 "consequence": "Queimaduras, intoxicação por fumaça, danos materiais, lesões graves e risco de morte.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisa acadêmica com análise de fluxo com amostras de material cerâmico.",
@@ -38366,6 +38500,7 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Máquinas e equipamentos diversos",
                                 "existingControls": "Extintor de incêndio"
                             }
                         ]
@@ -38385,13 +38520,13 @@ exports.CAMPUS_DATA = [
                         "risks": [
                             {
                                 "id": "xlsx-r036",
-                                "title": "Contato com composto químico",
+                                "title": "Gases e Vapores",
                                 "category": "Químicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco químicos identificado neste local.",
-                                "hazard": "Contato com composto químico",
-                                "riskEvent": "Contato com composto químico",
+                                "hazard": "Gases e Vapores",
+                                "riskEvent": "Gases e Vapores",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisa acadêmica com análise das propriedades químicas de amostras de fibras cerâmicas. Realiza o preparo de soluções químicas diversas.",
@@ -38403,17 +38538,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas e produtos químicos em geral",
                                 "existingControls": "Luva nitrílica, luva de raspa, respirador semifacial com filtro químico."
                             },
                             {
                                 "id": "xlsx-r037",
-                                "title": "Exigência de postura inadequada",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisa acadêmica com análise das propriedades químicas de amostras de fibras cerâmicas. Realiza o preparo de soluções químicas diversas.",
@@ -38428,13 +38564,13 @@ exports.CAMPUS_DATA = [
                             },
                             {
                                 "id": "xlsx-r038",
-                                "title": "Armazenamento inadequado",
+                                "title": "Armazenamento de materiais ou substâncias inflamáveis ou combustíveis",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Armazenamento inadequado",
-                                "riskEvent": "Armazenamento inadequado",
+                                "hazard": "Armazenamento de materiais ou substâncias inflamáveis ou combustíveis",
+                                "riskEvent": "Armazenamento de materiais ou substâncias inflamáveis ou combustíveis",
                                 "consequence": "Vazamentos e contaminação",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisa acadêmica com análise das propriedades químicas de amostras de fibras cerâmicas. Realiza o preparo de soluções químicas diversas.",
@@ -38445,17 +38581,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Substâncias compostas ou Produtos Químicos em geral"
                             },
                             {
                                 "id": "xlsx-r039",
-                                "title": "Acidentes com produtos químicos",
+                                "title": "Manipulação de produtos químicos perigosos",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Acidentes com produtos químicos",
-                                "riskEvent": "Acidentes com produtos químicos",
+                                "hazard": "Manipulação de produtos químicos perigosos",
+                                "riskEvent": "Manipulação de produtos químicos perigosos",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisa acadêmica com análise das propriedades químicas de amostras de fibras cerâmicas. Realiza o preparo de soluções químicas diversas.",
@@ -38467,17 +38604,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas ou Produtos Químicos em geral",
                                 "existingControls": "Luva nitrílica, respirador semifacial com filtro químico, jaleco, sapato fechado."
                             },
                             {
                                 "id": "xlsx-r040",
-                                "title": "Contato com superfícies aquecidas",
+                                "title": "Contato com superfícies quentes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Contato com superfícies aquecidas",
-                                "riskEvent": "Contato com superfícies aquecidas",
+                                "hazard": "Contato com superfícies quentes",
+                                "riskEvent": "Contato com superfícies quentes",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisa acadêmica com análise das propriedades químicas de amostras de fibras cerâmicas. Realiza o preparo de soluções químicas diversas.",
@@ -38489,18 +38627,19 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Equipamentos diversos que transmitem calor",
                                 "existingControls": "Luva nitrílica, luva de raspa"
                             },
                             {
                                 "id": "xlsx-r041",
-                                "title": "Probabilidade de incêndios",
+                                "title": "Sobrecarga elétrica",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Probabilidade de incêndios",
-                                "riskEvent": "Probabilidade de incêndios",
-                                "consequence": "Morte, queimaduras,  danos à sala e interrupção de atividades",
+                                "hazard": "Sobrecarga elétrica",
+                                "riskEvent": "Sobrecarga elétrica",
+                                "consequence": "Incêndios, queimaduras, danos à sala e interrupção de atividades e morte",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisa acadêmica com análise das propriedades químicas de amostras de fibras cerâmicas. Realiza o preparo de soluções químicas diversas.",
                                 "severity": 0,
@@ -38511,17 +38650,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Máquinas e equipamentos diversos",
                                 "existingControls": "Extintor de incêndio"
                             },
                             {
                                 "id": "xlsx-r042",
-                                "title": "Acidentes com vidrarias",
+                                "title": "Utilização de vidrarias",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Acidentes com vidrarias",
-                                "riskEvent": "Acidentes com vidrarias",
+                                "hazard": "Utilização de vidrarias",
+                                "riskEvent": "Utilização de vidrarias",
                                 "consequence": "Cortes e ferimentos nas mãos",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisa acadêmica com análise das propriedades químicas de amostras de fibras cerâmicas. Realiza o preparo de soluções químicas diversas.",
@@ -38533,6 +38673,7 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Vidrarias diversas",
                                 "existingControls": "Luva nitrílica"
                             }
                         ]
@@ -38558,13 +38699,13 @@ exports.CAMPUS_DATA = [
                         "risks": [
                             {
                                 "id": "xlsx-r050",
-                                "title": "Exigência de postura inadequada",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Exigência de postura inadequada",
-                                "riskEvent": "Exigência de postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisa acadêmica com análise das propriedades térmicas de amostras de cerâmica e polímeros. Realiza análises termogravimetricas.",
@@ -38579,13 +38720,13 @@ exports.CAMPUS_DATA = [
                             },
                             {
                                 "id": "xlsx-r051",
-                                "title": "Contato com superfícies aquecidas",
+                                "title": "Contato com superfícies quentes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Contato com superfícies aquecidas",
-                                "riskEvent": "Contato com superfícies aquecidas",
+                                "hazard": "Contato com superfícies quentes",
+                                "riskEvent": "Contato com superfícies quentes",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisa acadêmica com análise das propriedades térmicas de amostras de cerâmica e polímeros. Realiza análises termogravimetricas.",
@@ -38597,18 +38738,19 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Equipamentos diversos que transmitem calor",
                                 "existingControls": "Luvas"
                             },
                             {
                                 "id": "xlsx-r052",
-                                "title": "Probabilidade de incêndios",
+                                "title": "Sobrecarga elétrica",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Probabilidade de incêndios",
-                                "riskEvent": "Probabilidade de incêndios",
-                                "consequence": "Morte, queimaduras, danos à sala e interrupção de atividades",
+                                "hazard": "Sobrecarga elétrica",
+                                "riskEvent": "Sobrecarga elétrica",
+                                "consequence": "Incêndios, queimaduras, danos à sala e interrupção de atividades e morte",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Pesquisa acadêmica com análise das propriedades térmicas de amostras de cerâmica e polímeros. Realiza análises termogravimetricas.",
                                 "severity": 0,
@@ -38618,7 +38760,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Máquinas e equipamentos diversos"
                             }
                         ]
                     }
@@ -38664,13 +38807,13 @@ exports.CAMPUS_DATA = [
                         "risks": [
                             {
                                 "id": "xlsx-r058",
-                                "title": "Vírus, bactérias (serviço de atendimento ambulatorial)",
+                                "title": "Microrganismos",
                                 "category": "Biológicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco biológicos identificado neste local.",
-                                "hazard": "Vírus, bactérias (serviço de atendimento ambulatorial)",
-                                "riskEvent": "Vírus, bactérias (serviço de atendimento ambulatorial)",
+                                "hazard": "Microrganismos",
+                                "riskEvent": "Microrganismos",
                                 "consequence": "Infeções e doenças transmissíveis",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Realiza atendimento médico ambulatorial das crianças da creche.",
@@ -38681,17 +38824,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Assistência a pacientes em serviços de saúde"
                             },
                             {
                                 "id": "xlsx-r059",
-                                "title": "Posturas inadequadas",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Posturas inadequadas",
-                                "riskEvent": "Posturas inadequadas",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Realiza atendimento médico ambulatorial das crianças da creche.",
@@ -38783,13 +38927,13 @@ exports.CAMPUS_DATA = [
                         "risks": [
                             {
                                 "id": "xlsx-r061",
-                                "title": "Substâncias compostas e produtos químicos diversos",
+                                "title": "Gases e Vapores",
                                 "category": "Químicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco químicos identificado neste local.",
-                                "hazard": "Substâncias compostas e produtos químicos diversos",
-                                "riskEvent": "Substâncias compostas e produtos químicos diversos",
+                                "hazard": "Gases e Vapores",
+                                "riskEvent": "Gases e Vapores",
                                 "consequence": "Intoxicação, dores de cabeça, vertigem",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Desenvolvimento de projetos de pesquisas, de alunos de pós-graduação, com análise de composição química, corrosão, obtenção de revestimento metálico e galvanoplastia de amostras de metais.",
@@ -38801,6 +38945,7 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas e produtos químicos em geral",
                                 "existingControls": "Capela de exaustão de gases e vapores."
                             },
                             {
@@ -38826,13 +38971,13 @@ exports.CAMPUS_DATA = [
                             },
                             {
                                 "id": "xlsx-r063",
-                                "title": "Manuseio de produtos químicos",
+                                "title": "Manipulação de produtos químicos perigosos",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Manuseio de produtos químicos",
-                                "riskEvent": "Manuseio de produtos químicos",
+                                "hazard": "Manipulação de produtos químicos perigosos",
+                                "riskEvent": "Manipulação de produtos químicos perigosos",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Desenvolvimento de projetos de pesquisas, de alunos de pós-graduação, com análise de composição química, corrosão, obtenção de revestimento metálico e galvanoplastia de amostras de metais.",
@@ -38844,17 +38989,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas ou Produtos Químicos em geral",
                                 "existingControls": "luva térmica (CA: 16074, ), luvas nitrílicas (CA: 44048; 40590; 40086; 44443)"
                             },
                             {
                                 "id": "xlsx-r064",
-                                "title": "Gás comprimido (argônio)",
+                                "title": "Utilização de gases (ou mistura) sob pressão",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Gás comprimido (argônio)",
-                                "riskEvent": "Gás comprimido (argônio)",
+                                "hazard": "Utilização de gases (ou mistura) sob pressão",
+                                "riskEvent": "Utilização de gases (ou mistura) sob pressão",
                                 "consequence": "Asfixia, queimaduras por frio e impactos (ou quedas)",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Desenvolvimento de projetos de pesquisas, de alunos de pós-graduação, com análise de composição química, corrosão, obtenção de revestimento metálico e galvanoplastia de amostras de metais.",
@@ -38866,6 +39012,7 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Gás comprimido (argônio)",
                                 "existingControls": "Capela de exaustão de gases e vapores."
                             }
                         ]
@@ -38884,7 +39031,7 @@ exports.CAMPUS_DATA = [
                         "exposureGroup": "Alunos, servidores e visitantes",
                         "risks": [
                             {
-                                "id": "xlsx-r181",
+                                "id": "xlsx-r182",
                                 "title": "Microrganismos",
                                 "category": "Biológicos",
                                 "level": "baixo",
@@ -38903,10 +39050,11 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Materiais orgânicos em decomposição",
                                 "existingControls": "luvas de algodão (CA: 12692)"
                             },
                             {
-                                "id": "xlsx-r182",
+                                "id": "xlsx-r183",
                                 "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
@@ -38927,7 +39075,7 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r183",
+                                "id": "xlsx-r184",
                                 "title": "Arranjo físico inadequado",
                                 "category": "Acidentes",
                                 "level": "baixo",
@@ -38948,14 +39096,14 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r184",
-                                "title": "iluminação inadequada",
+                                "id": "xlsx-r185",
+                                "title": "Iluminação inadequada",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "iluminação inadequada",
-                                "riskEvent": "iluminação inadequada",
+                                "hazard": "Iluminação inadequada",
+                                "riskEvent": "Iluminação inadequada",
                                 "consequence": "Fadiga visual, dores de cabeça, dificuldade de concentração e maior risco de acidentes durante as atividades laboratoriais",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Ensino e pesquisas acadêmicas sobre gestão de resíduos sólidos. No laboratório de tecnologia agroambiental (bloco BX) são realizadas atividades administrativas, recebimento e armazenamento de materiais diversos e equipamentos eletroeletrônicos inutilizados para seleção e recuperação. No pátio de compostagem são realizadas pesquisas com análise e caracterização gravimétricas de materiais orgânicos e inorgânicos e processo de compostagem de material vegetal.\nobs: As atividades de manutenção e recuperação de equipamentos eletroeletrônicos são realizadas por alunos do curso de elétrica.",
@@ -38969,14 +39117,14 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r185",
-                                "title": "probabilidade de incêndio",
+                                "id": "xlsx-r186",
+                                "title": "Sobrecarga elétrica",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "probabilidade de incêndio",
-                                "riskEvent": "probabilidade de incêndio",
+                                "hazard": "Sobrecarga elétrica",
+                                "riskEvent": "Sobrecarga elétrica",
                                 "consequence": "Queimaduras, intoxicação por fumaça, danos materiais, lesões graves e risco de morte.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Ensino e pesquisas acadêmicas sobre gestão de resíduos sólidos. No laboratório de tecnologia agroambiental (bloco BX) são realizadas atividades administrativas, recebimento e armazenamento de materiais diversos e equipamentos eletroeletrônicos inutilizados para seleção e recuperação. No pátio de compostagem são realizadas pesquisas com análise e caracterização gravimétricas de materiais orgânicos e inorgânicos e processo de compostagem de material vegetal.\nobs: As atividades de manutenção e recuperação de equipamentos eletroeletrônicos são realizadas por alunos do curso de elétrica.",
@@ -38988,10 +39136,11 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Máquinas e equipamentos diversos",
                                 "existingControls": "Extintores de incêndio."
                             },
                             {
-                                "id": "xlsx-r186",
+                                "id": "xlsx-r187",
                                 "title": "armazenamento inadequado",
                                 "category": "Acidentes",
                                 "level": "baixo",
@@ -39012,14 +39161,14 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r187",
-                                "title": "contato com animais peçonhentos",
+                                "id": "xlsx-r188",
+                                "title": "Contato com animais peçonhentos",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "contato com animais peçonhentos",
-                                "riskEvent": "contato com animais peçonhentos",
+                                "hazard": "Contato com animais peçonhentos",
+                                "riskEvent": "Contato com animais peçonhentos",
                                 "consequence": "Picadas, envenenamento, dor, inchaço, reações alérgicas e, em casos graves, complicações sistêmicas",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Ensino e pesquisas acadêmicas sobre gestão de resíduos sólidos. No laboratório de tecnologia agroambiental (bloco BX) são realizadas atividades administrativas, recebimento e armazenamento de materiais diversos e equipamentos eletroeletrônicos inutilizados para seleção e recuperação. No pátio de compostagem são realizadas pesquisas com análise e caracterização gravimétricas de materiais orgânicos e inorgânicos e processo de compostagem de material vegetal.\nobs: As atividades de manutenção e recuperação de equipamentos eletroeletrônicos são realizadas por alunos do curso de elétrica.",
@@ -39034,14 +39183,14 @@ exports.CAMPUS_DATA = [
                                 "existingControls": "luvas de algodão (CA: 12692) e sapatos fechados"
                             },
                             {
-                                "id": "xlsx-r188",
-                                "title": "contato com superfícies aquecidas",
+                                "id": "xlsx-r189",
+                                "title": "Contato com superfícies quentes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "contato com superfícies aquecidas",
-                                "riskEvent": "contato com superfícies aquecidas",
+                                "hazard": "Contato com superfícies quentes",
+                                "riskEvent": "Contato com superfícies quentes",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Ensino e pesquisas acadêmicas sobre gestão de resíduos sólidos. No laboratório de tecnologia agroambiental (bloco BX) são realizadas atividades administrativas, recebimento e armazenamento de materiais diversos e equipamentos eletroeletrônicos inutilizados para seleção e recuperação. No pátio de compostagem são realizadas pesquisas com análise e caracterização gravimétricas de materiais orgânicos e inorgânicos e processo de compostagem de material vegetal.\nobs: As atividades de manutenção e recuperação de equipamentos eletroeletrônicos são realizadas por alunos do curso de elétrica.",
@@ -39052,7 +39201,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Equipamentos diversos que transmitem calor"
                             }
                         ]
                     }
@@ -39115,17 +39265,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Equipamentos ligados em baixa tensão"
                             },
                             {
                                 "id": "xlsx-r066",
-                                "title": "Piso com rachadura (risco de queda)",
+                                "title": "Piso, parede ou teto com rachaduras",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Piso com rachadura (risco de queda)",
-                                "riskEvent": "Piso com rachadura (risco de queda)",
+                                "hazard": "Piso, parede ou teto com rachaduras",
+                                "riskEvent": "Piso, parede ou teto com rachaduras",
                                 "consequence": "Tropeços, quedas e entorses",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino teórico e prático com montagem, medição, simulação, análise e operações diversas  de sistemas elétricos e eletrônicos.",
@@ -39136,7 +39287,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Piso com rachadura"
                             }
                         ]
                     },
@@ -39172,7 +39324,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Equipamentos ligados em baixa tensão"
                             }
                         ]
                     },
@@ -39208,7 +39361,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Equipamentos ligados em baixa tensão"
                             }
                         ]
                     },
@@ -39244,7 +39398,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Equipamentos ligados em baixa tensão"
                             }
                         ]
                     },
@@ -39280,17 +39435,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Equipamentos ligados em baixa tensão"
                             },
                             {
                                 "id": "xlsx-r071",
-                                "title": "Arranjo físico inadequado (cabos pelo chão)",
+                                "title": "Cabos e fios soltos dispostos de maneira inadequada",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Arranjo físico inadequado (cabos pelo chão)",
-                                "riskEvent": "Arranjo físico inadequado (cabos pelo chão)",
+                                "hazard": "Cabos e fios soltos dispostos de maneira inadequada",
+                                "riskEvent": "Cabos e fios soltos dispostos de maneira inadequada",
                                 "consequence": "Tropeços, quedas e danos a equipamentos",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino teórico e prático com montagem, medição, simulação, análise e operações diversas  de sistemas elétricos e eletrônicos.",
@@ -39301,7 +39457,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Cabos de máquinas e equipamentos"
                             }
                         ]
                     }
@@ -39343,17 +39500,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Equipamentos ligados em baixa tensão"
                             },
                             {
                                 "id": "xlsx-r073",
-                                "title": "Piso com rachadura (risco de queda)",
+                                "title": "Piso, parede ou teto com rachaduras",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Piso com rachadura (risco de queda)",
-                                "riskEvent": "Piso com rachadura (risco de queda)",
+                                "hazard": "Piso, parede ou teto com rachaduras",
+                                "riskEvent": "Piso, parede ou teto com rachaduras",
                                 "consequence": "Tropeços, quedas e entorses",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino teórico e prático com montagem, medição, simulação, análise e operações diversas  de sistemas elétricos e eletrônicos.",
@@ -39364,7 +39522,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Piso com rachadura"
                             }
                         ]
                     },
@@ -39383,13 +39542,13 @@ exports.CAMPUS_DATA = [
                         "risks": [
                             {
                                 "id": "xlsx-r074",
-                                "title": "Piso com rachadura (risco de queda)",
+                                "title": "Piso, parede ou teto com rachaduras",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Piso com rachadura (risco de queda)",
-                                "riskEvent": "Piso com rachadura (risco de queda)",
+                                "hazard": "Piso, parede ou teto com rachaduras",
+                                "riskEvent": "Piso, parede ou teto com rachaduras",
                                 "consequence": "Tropeços, quedas e entorses",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino teórico e prático com montagem, medição, simulação, análise e operações diversas  de sistemas elétricos e eletrônicos.",
@@ -39400,7 +39559,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Piso com rachadura"
                             },
                             {
                                 "id": "xlsx-r075",
@@ -39421,7 +39581,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Equipamentos ligados em baixa tensão"
                             }
                         ]
                     },
@@ -39457,17 +39618,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Equipamentos ligados em baixa tensão"
                             },
                             {
                                 "id": "xlsx-r077",
-                                "title": "Piso com rachadura (risco de queda)",
+                                "title": "Piso, parede ou teto com rachaduras",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Piso com rachadura (risco de queda)",
-                                "riskEvent": "Piso com rachadura (risco de queda)",
+                                "hazard": "Piso, parede ou teto com rachaduras",
+                                "riskEvent": "Piso, parede ou teto com rachaduras",
                                 "consequence": "Tropeços, quedas e entorses",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino teórico e prático com montagem, medição, simulação, análise e operações diversas  de sistemas elétricos e eletrônicos.",
@@ -39478,7 +39640,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Piso com rachadura"
                             }
                         ]
                     },
@@ -39497,13 +39660,13 @@ exports.CAMPUS_DATA = [
                         "risks": [
                             {
                                 "id": "xlsx-r078",
-                                "title": "Piso com rachadura (risco de queda)",
+                                "title": "Piso, parede ou teto com rachaduras",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Piso com rachadura (risco de queda)",
-                                "riskEvent": "Piso com rachadura (risco de queda)",
+                                "hazard": "Piso, parede ou teto com rachaduras",
+                                "riskEvent": "Piso, parede ou teto com rachaduras",
                                 "consequence": "Tropeços, quedas e entorses",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino teórico e prático com montagem, medição, simulação, análise e operações diversas  de sistemas elétricos e eletrônicos.",
@@ -39514,7 +39677,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Piso com rachadura"
                             },
                             {
                                 "id": "xlsx-r079",
@@ -39535,7 +39699,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Equipamentos ligados em baixa tensão"
                             }
                         ]
                     },
@@ -39571,17 +39736,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Equipamentos ligados em baixa tensão"
                             },
                             {
                                 "id": "xlsx-r081",
-                                "title": "Piso com rachadura (risco de queda)",
+                                "title": "Piso, parede ou teto com rachaduras",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Piso com rachadura (risco de queda)",
-                                "riskEvent": "Piso com rachadura (risco de queda)",
+                                "hazard": "Piso, parede ou teto com rachaduras",
+                                "riskEvent": "Piso, parede ou teto com rachaduras",
                                 "consequence": "Tropeços, quedas e entorses",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino teórico e prático com montagem, medição, simulação, análise e operações diversas  de sistemas elétricos e eletrônicos.",
@@ -39592,7 +39758,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Piso com rachadura"
                             }
                         ]
                     }
@@ -39637,14 +39804,14 @@ exports.CAMPUS_DATA = [
                         "exposureGroup": "Alunos, servidores e visitantes",
                         "risks": [
                             {
-                                "id": "xlsx-r166",
-                                "title": "Posturas inadequadas",
+                                "id": "xlsx-r167",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Posturas inadequadas",
-                                "riskEvent": "Posturas inadequadas",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Nos laboratórios são desenvolvidas atividades de ensino e desenvolvimento de projetos de pesquisas nas áreas de computação.\nNa sala dos técnicos (técnico em tecnologia da informação e assistente técnico de tecnologia da informação) são realizadas atividades de manutenção de peças e equipamentos dos laboratórios de informática.",
@@ -39658,15 +39825,15 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r167",
-                                "title": "Escorregões",
+                                "id": "xlsx-r168",
+                                "title": "Piso escorregadio",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Escorregões",
-                                "riskEvent": "Escorregões",
-                                "consequence": "contusões, hematomas, entorses, fraturas",
+                                "hazard": "Piso escorregadio",
+                                "riskEvent": "Piso escorregadio",
+                                "consequence": "Escorrgões, contusões, hematomas, entorses, fraturas",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Nos laboratórios são desenvolvidas atividades de ensino e desenvolvimento de projetos de pesquisas nas áreas de computação.\nNa sala dos técnicos (técnico em tecnologia da informação e assistente técnico de tecnologia da informação) são realizadas atividades de manutenção de peças e equipamentos dos laboratórios de informática.",
                                 "severity": 0,
@@ -39676,17 +39843,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Piso"
                             },
                             {
-                                "id": "xlsx-r168",
-                                "title": "quedas",
+                                "id": "xlsx-r169",
+                                "title": "Piso com desnível sem proteção adequada",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "quedas",
-                                "riskEvent": "quedas",
+                                "hazard": "Piso com desnível sem proteção adequada",
+                                "riskEvent": "Piso com desnível sem proteção adequada",
                                 "consequence": "Contusões, hematomas, entorses, fraturas e traumatismos, podendo causar lesões leves ou graves",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Nos laboratórios são desenvolvidas atividades de ensino e desenvolvimento de projetos de pesquisas nas áreas de computação.\nNa sala dos técnicos (técnico em tecnologia da informação e assistente técnico de tecnologia da informação) são realizadas atividades de manutenção de peças e equipamentos dos laboratórios de informática.",
@@ -39697,38 +39865,39 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
-                            },
-                            {
-                                "id": "xlsx-r169",
-                                "title": "falta de equipamentos de combate ao fogo",
-                                "category": "Acidentes",
-                                "level": "baixo",
-                                "status": "pendente",
-                                "description": "Risco acidentes identificado neste local.",
-                                "hazard": "falta de equipamentos de combate ao fogo",
-                                "riskEvent": "falta de equipamentos de combate ao fogo",
-                                "consequence": "Propagação de incêndios, queimaduras, intoxicação por fumaça, danos materiais, lesões graves e risco de morte",
-                                "exposedPublic": "Alunos e servidores",
-                                "circulation": "Nos laboratórios são desenvolvidas atividades de ensino e desenvolvimento de projetos de pesquisas nas áreas de computação.\nNa sala dos técnicos (técnico em tecnologia da informação e assistente técnico de tecnologia da informação) são realizadas atividades de manutenção de peças e equipamentos dos laboratórios de informática.",
-                                "severity": 0,
-                                "probability": 0,
-                                "riskScore": 0,
-                                "registeredAt": "2026-09-28",
-                                "updatedAt": "2026-09-28",
-                                "flags": [
-                                    "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Diferença de nível (escada)"
                             },
                             {
                                 "id": "xlsx-r170",
-                                "title": "dificudade de evacuação em situações perigosas",
+                                "title": "Sobrecarga elétrica",
+                                "category": "Acidentes",
+                                "level": "critico",
+                                "status": "pendente",
+                                "description": "Risco acidentes identificado neste local.",
+                                "hazard": "Sobrecarga elétrica",
+                                "riskEvent": "Sobrecarga elétrica",
+                                "consequence": "Propagação de incêndios, queimaduras, intoxicação por fumaça, danos materiais, lesões graves e risco de morte",
+                                "exposedPublic": "Alunos e servidores",
+                                "circulation": "Nos laboratórios são desenvolvidas atividades de ensino e desenvolvimento de projetos de pesquisas nas áreas de computação.\nNa sala dos técnicos (técnico em tecnologia da informação e assistente técnico de tecnologia da informação) são realizadas atividades de manutenção de peças e equipamentos dos laboratórios de informática.",
+                                "severity": 5,
+                                "probability": 4,
+                                "riskScore": 20,
+                                "registeredAt": "2026-09-28",
+                                "updatedAt": "2026-09-28",
+                                "flags": [],
+                                "source": "Computadores e datacenter",
+                                "existingControls": "ausente"
+                            },
+                            {
+                                "id": "xlsx-r171",
+                                "title": "Rota de fuga obstruída",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "dificudade de evacuação em situações perigosas",
-                                "riskEvent": "dificudade de evacuação em situações perigosas",
+                                "hazard": "Rota de fuga obstruída",
+                                "riskEvent": "Rota de fuga obstruída",
                                 "consequence": "Atraso na evacuação, exposição a fumaça e substâncias perigosas, lesões graves e risco de morte",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Nos laboratórios são desenvolvidas atividades de ensino e desenvolvimento de projetos de pesquisas nas áreas de computação.\nNa sala dos técnicos (técnico em tecnologia da informação e assistente técnico de tecnologia da informação) são realizadas atividades de manutenção de peças e equipamentos dos laboratórios de informática.",
@@ -39783,14 +39952,14 @@ exports.CAMPUS_DATA = [
                         "exposureGroup": "Alunos, servidores e visitantes",
                         "risks": [
                             {
-                                "id": "xlsx-r171",
-                                "title": "Postura inadequada",
+                                "id": "xlsx-r172",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Postura inadequada",
-                                "riskEvent": "Postura inadequada",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Local cadastrado",
@@ -39804,14 +39973,14 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r172",
-                                "title": "Queda por diferença de nível (escada)",
+                                "id": "xlsx-r173",
+                                "title": "Piso com desnível sem proteção adequada",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Queda por diferença de nível (escada)",
-                                "riskEvent": "Queda por diferença de nível (escada)",
+                                "hazard": "Piso com desnível sem proteção adequada",
+                                "riskEvent": "Piso com desnível sem proteção adequada",
                                 "consequence": "Contusões, hematomas, entorses, fraturas e traumatismos, podendo causar lesões leves ou graves",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Local cadastrado",
@@ -39822,7 +39991,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Diferença de nível"
                             }
                         ]
                     }
@@ -39877,14 +40047,14 @@ exports.CAMPUS_DATA = [
                         "exposureGroup": "Alunos, servidores e visitantes",
                         "risks": [
                             {
-                                "id": "xlsx-r173",
-                                "title": "Ruído (instrumentos musicais)",
+                                "id": "xlsx-r174",
+                                "title": "Ruído",
                                 "category": "Físicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco físicos identificado neste local.",
-                                "hazard": "Ruído (instrumentos musicais)",
-                                "riskEvent": "Ruído (instrumentos musicais)",
+                                "hazard": "Ruído",
+                                "riskEvent": "Ruído",
                                 "consequence": "Perda auditiva, zumbido nos ouvidos, estresse, irritabilidade e dificuldade de concentração",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Ministração de aulas teóricas e práticas com instrumentos musicais. Ensaios de canto e de instrumentos, individuais e coletivos. Atividades de pesquisa e extensão com práticas musicais.",
@@ -39896,38 +40066,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "instrumentos musicais",
                                 "existingControls": "Paredes com  isolamento acústico por parede dupla com camada de ar (em alguns ambientes)."
                             },
                             {
-                                "id": "xlsx-r174",
-                                "title": "Posturas inadequadas",
-                                "category": "Ergonômicos",
-                                "level": "baixo",
-                                "status": "pendente",
-                                "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "Posturas inadequadas",
-                                "riskEvent": "Posturas inadequadas",
-                                "consequence": "Não informado.",
-                                "exposedPublic": "Alunos e servidores",
-                                "circulation": "Ministração de aulas teóricas e práticas com instrumentos musicais. Ensaios de canto e de instrumentos, individuais e coletivos. Atividades de pesquisa e extensão com práticas musicais.",
-                                "severity": 0,
-                                "probability": 0,
-                                "riskScore": 0,
-                                "registeredAt": "2026-09-28",
-                                "updatedAt": "2026-09-28",
-                                "flags": [
-                                    "sem-classificacao"
-                                ]
-                            },
-                            {
                                 "id": "xlsx-r175",
-                                "title": "movimentos repetitivos",
+                                "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "movimentos repetitivos",
-                                "riskEvent": "movimentos repetitivos",
+                                "hazard": "Exigência de posturas inadequadas",
+                                "riskEvent": "Exigência de posturas inadequadas",
                                 "consequence": "Não informado.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Ministração de aulas teóricas e práticas com instrumentos musicais. Ensaios de canto e de instrumentos, individuais e coletivos. Atividades de pesquisa e extensão com práticas musicais.",
@@ -39942,6 +40092,28 @@ exports.CAMPUS_DATA = [
                             },
                             {
                                 "id": "xlsx-r176",
+                                "title": "Movimentos repetitivos",
+                                "category": "Ergonômicos",
+                                "level": "baixo",
+                                "status": "pendente",
+                                "description": "Risco ergonômicos identificado neste local.",
+                                "hazard": "Movimentos repetitivos",
+                                "riskEvent": "Movimentos repetitivos",
+                                "consequence": "Não informado.",
+                                "exposedPublic": "Alunos e servidores",
+                                "circulation": "Ministração de aulas teóricas e práticas com instrumentos musicais. Ensaios de canto e de instrumentos, individuais e coletivos. Atividades de pesquisa e extensão com práticas musicais.",
+                                "severity": 0,
+                                "probability": 0,
+                                "riskScore": 0,
+                                "registeredAt": "2026-09-28",
+                                "updatedAt": "2026-09-28",
+                                "flags": [
+                                    "sem-classificacao"
+                                ],
+                                "source": "Atividades com instrumentos musicais"
+                            },
+                            {
+                                "id": "xlsx-r177",
                                 "title": "Arranjo físico inadequado",
                                 "category": "Acidentes",
                                 "level": "baixo",
@@ -39962,14 +40134,14 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r177",
-                                "title": "piso em desníveis (degraus e batentes)",
+                                "id": "xlsx-r178",
+                                "title": "Piso com desnível sem proteção adequada",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "piso em desníveis (degraus e batentes)",
-                                "riskEvent": "piso em desníveis (degraus e batentes)",
+                                "hazard": "Piso com desnível sem proteção adequada",
+                                "riskEvent": "Piso com desnível sem proteção adequada",
                                 "consequence": "contusões, hematomas, entorses, fraturas",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Ministração de aulas teóricas e práticas com instrumentos musicais. Ensaios de canto e de instrumentos, individuais e coletivos. Atividades de pesquisa e extensão com práticas musicais.",
@@ -39980,7 +40152,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Diferença de nível"
                             }
                         ]
                     }
@@ -40035,14 +40208,14 @@ exports.CAMPUS_DATA = [
                         "exposureGroup": "Alunos, servidores e visitantes",
                         "risks": [
                             {
-                                "id": "xlsx-r178",
-                                "title": "Microorganismos diversos devido ao contato com pacientes",
+                                "id": "xlsx-r179",
+                                "title": "Microrganismos",
                                 "category": "Biológicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco biológicos identificado neste local.",
-                                "hazard": "Microorganismos diversos devido ao contato com pacientes",
-                                "riskEvent": "Microorganismos diversos devido ao contato com pacientes",
+                                "hazard": "Microrganismos",
+                                "riskEvent": "Microrganismos",
                                 "consequence": "Infecções, doenças contagiosas, alergias e contaminação por agentes biológicos",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atendimento a alunos da UFCG nas áreas médicas, de enfermagem, psicologia e odontologia, constando de recepção, pré-consulta, consultas clínicas, curativos e atividades educativas.",
@@ -40054,10 +40227,11 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Assistência a pacientes em serviços de saúde",
                                 "existingControls": "Luvas, máscaras, toucas, jaleco"
                             },
                             {
-                                "id": "xlsx-r179",
+                                "id": "xlsx-r180",
                                 "title": "Posturas inadequadas e movimentos repetitivos",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
@@ -40078,14 +40252,14 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r180",
-                                "title": "Manuseio de instrumentos perfurocortantes e equipamentos que emitem calor",
+                                "id": "xlsx-r181",
+                                "title": "Utilização de materiais ou ferramentas perfurocortantes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Manuseio de instrumentos perfurocortantes e equipamentos que emitem calor",
-                                "riskEvent": "Manuseio de instrumentos perfurocortantes e equipamentos que emitem calor",
+                                "hazard": "Utilização de materiais ou ferramentas perfurocortantes",
+                                "riskEvent": "Utilização de materiais ou ferramentas perfurocortantes",
                                 "consequence": "Cortes, perfurações, queimaduras, hemorragias e possíveis infecções por materiais contaminados.",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atendimento a alunos da UFCG nas áreas médicas, de enfermagem, psicologia e odontologia, constando de recepção, pré-consulta, consultas clínicas, curativos e atividades educativas.",
@@ -40142,14 +40316,14 @@ exports.CAMPUS_DATA = [
                         "exposureGroup": "Alunos, servidores e visitantes",
                         "risks": [
                             {
-                                "id": "xlsx-r189",
-                                "title": "Substâncias compostas e produtos químicos em geral",
+                                "id": "xlsx-r190",
+                                "title": "Gases e Vapores",
                                 "category": "Químicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco químicos identificado neste local.",
-                                "hazard": "Substâncias compostas e produtos químicos em geral",
-                                "riskEvent": "Substâncias compostas e produtos químicos em geral",
+                                "hazard": "Gases e Vapores",
+                                "riskEvent": "Gases e Vapores",
                                 "consequence": "Intoxicações, queimaduras químicas, irritações na pele e nos olhos, alergias e problemas respiratórios",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com elaboração de projetos, desenvolvimento e confecção de protótipos de peças, equipamentos e produtos diversos, utilizando reaproveitamento de materiais reciclados (papelão, isopor, madeira, metal, PVC, EVA). Realiza modelagem de protótipo de peças, equipamentos e produtos diversos.",
@@ -40161,17 +40335,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
-                                "existingControls": "Luva (CA 32034), máscaras PFF2-N95 (CA 41514)"
+                                "source": "Substâncias compostas e produtos químicos em geral",
+                                "existingControls": "máscaras PFF2-N95 (CA 41514)"
                             },
                             {
-                                "id": "xlsx-r190",
-                                "title": "Ruído (máquinas e equipamentos de cortes)",
+                                "id": "xlsx-r191",
+                                "title": "Ruído",
                                 "category": "Físicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco físicos identificado neste local.",
-                                "hazard": "Ruído (máquinas e equipamentos de cortes)",
-                                "riskEvent": "Ruído (máquinas e equipamentos de cortes)",
+                                "hazard": "Ruído",
+                                "riskEvent": "Ruído",
                                 "consequence": "Perda auditiva, zumbido nos ouvidos, estresse, irritabilidade e dificuldade de concentração",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com elaboração de projetos, desenvolvimento e confecção de protótipos de peças, equipamentos e produtos diversos, utilizando reaproveitamento de materiais reciclados (papelão, isopor, madeira, metal, PVC, EVA). Realiza modelagem de protótipo de peças, equipamentos e produtos diversos.",
@@ -40183,10 +40358,11 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "máquinas e equipamentos de cortes",
                                 "existingControls": "protetor auricular (CA:)"
                             },
                             {
-                                "id": "xlsx-r191",
+                                "id": "xlsx-r192",
                                 "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
@@ -40207,14 +40383,14 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r192",
-                                "title": "Utilização de máquinas com zona de perigo desprotegida",
+                                "id": "xlsx-r193",
+                                "title": "Máquinas e equipamentos sem proteção adequada",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Utilização de máquinas com zona de perigo desprotegida",
-                                "riskEvent": "Utilização de máquinas com zona de perigo desprotegida",
+                                "hazard": "Máquinas e equipamentos sem proteção adequada",
+                                "riskEvent": "Máquinas e equipamentos sem proteção adequada",
                                 "consequence": "Cortes, esmagamentos, amputações, fraturas e lesões graves, podendo causar incapacidade permanente ou morte",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com elaboração de projetos, desenvolvimento e confecção de protótipos de peças, equipamentos e produtos diversos, utilizando reaproveitamento de materiais reciclados (papelão, isopor, madeira, metal, PVC, EVA). Realiza modelagem de protótipo de peças, equipamentos e produtos diversos.",
@@ -40225,17 +40401,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Máquinas e equipamentos diversos"
                             },
                             {
-                                "id": "xlsx-r193",
-                                "title": "utilização de ferramentas manuais cortantes",
+                                "id": "xlsx-r194",
+                                "title": "Utilização de materiais ou ferramentas cortantes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "utilização de ferramentas manuais cortantes",
-                                "riskEvent": "utilização de ferramentas manuais cortantes",
+                                "hazard": "Utilização de materiais ou ferramentas cortantes",
+                                "riskEvent": "Utilização de materiais ou ferramentas cortantes",
                                 "consequence": "Cortes, perfurações, hemorragias e lesões nas mãos e nos dedos",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com elaboração de projetos, desenvolvimento e confecção de protótipos de peças, equipamentos e produtos diversos, utilizando reaproveitamento de materiais reciclados (papelão, isopor, madeira, metal, PVC, EVA). Realiza modelagem de protótipo de peças, equipamentos e produtos diversos.",
@@ -40247,10 +40424,11 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Materiais e ferramentas diversas",
                                 "existingControls": "Luva (CA 32034)"
                             },
                             {
-                                "id": "xlsx-r194",
+                                "id": "xlsx-r195",
                                 "title": "armazenamento inadequado",
                                 "category": "Acidentes",
                                 "level": "baixo",
@@ -40271,14 +40449,14 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r195",
-                                "title": "sobrecarga elétrica",
+                                "id": "xlsx-r196",
+                                "title": "Sobrecarga elétrica",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "sobrecarga elétrica",
-                                "riskEvent": "sobrecarga elétrica",
+                                "hazard": "Sobrecarga elétrica",
+                                "riskEvent": "Sobrecarga elétrica",
                                 "consequence": "Choques elétricos, queimaduras, curto-circuitos, incêndios e risco de morte",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisa acadêmicas com elaboração de projetos, desenvolvimento e confecção de protótipos de peças, equipamentos e produtos diversos, utilizando reaproveitamento de materiais reciclados (papelão, isopor, madeira, metal, PVC, EVA). Realiza modelagem de protótipo de peças, equipamentos e produtos diversos.",
@@ -40290,10 +40468,11 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
-                                "existingControls": "Óculos de proteção (CA: 18246), máscaras PFF2-N95 (CA 41514), Avental (CA 10511), Perneira (CA 25816), Luva (CA 32034),"
+                                "source": "Máquinas e equipamentos diveros",
+                                "existingControls": "Óculos de proteção (CA: 18246), Avental (CA 10511), Perneira (CA 25816), Luva (CA 32034)"
                             },
                             {
-                                "id": "xlsx-r196",
+                                "id": "xlsx-r197",
                                 "title": "arranjo físico inadequado",
                                 "category": "Acidentes",
                                 "level": "baixo",
@@ -40329,14 +40508,14 @@ exports.CAMPUS_DATA = [
                         "exposureGroup": "Alunos, servidores e visitantes",
                         "risks": [
                             {
-                                "id": "xlsx-r197",
-                                "title": "Substâncias compostas e produtos químicos em geral",
+                                "id": "xlsx-r198",
+                                "title": "Gases e Vapores",
                                 "category": "Químicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco químicos identificado neste local.",
-                                "hazard": "Substâncias compostas e produtos químicos em geral",
-                                "riskEvent": "Substâncias compostas e produtos químicos em geral",
+                                "hazard": "Gases e Vapores",
+                                "riskEvent": "Gases e Vapores",
                                 "consequence": "Intoxicações, queimaduras químicas, irritações na pele e nos olhos, alergias e problemas respiratórios",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de fabricação e produção mecânica de peças e materiais metálicos e de madeiras. Realiza a manutenção de máquinas e equipamentos.",
@@ -40348,17 +40527,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Substâncias compostas e produtos químicos em geral",
                                 "existingControls": "Óculos de proteção (CA:30013), máscara descartável, luvas de algodão (CA: 34491), luvas de raspa de couro"
                             },
                             {
-                                "id": "xlsx-r198",
-                                "title": "fumos metálicos (soldagem)",
+                                "id": "xlsx-r199",
+                                "title": "fumos metálicos",
                                 "category": "Químicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco químicos identificado neste local.",
-                                "hazard": "fumos metálicos (soldagem)",
-                                "riskEvent": "fumos metálicos (soldagem)",
+                                "hazard": "fumos metálicos",
+                                "riskEvent": "fumos metálicos",
                                 "consequence": "Irritação das vias respiratórias, intoxicação, tosse, falta de ar e doenças respiratórias",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de fabricação e produção mecânica de peças e materiais metálicos e de madeiras. Realiza a manutenção de máquinas e equipamentos.",
@@ -40370,17 +40550,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Soldagem",
                                 "existingControls": "Óculos de proteção (CA:30013), máscara descartável, luvas de algodão (CA: 34491), luvas de raspa de couro, máscara de solda (CA: 47930), e avental"
                             },
                             {
-                                "id": "xlsx-r199",
-                                "title": "poeira vegetal (corte de madeira)",
+                                "id": "xlsx-r200",
+                                "title": "poeira vegetal",
                                 "category": "Químicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco químicos identificado neste local.",
-                                "hazard": "poeira vegetal (corte de madeira)",
-                                "riskEvent": "poeira vegetal (corte de madeira)",
+                                "hazard": "poeira vegetal",
+                                "riskEvent": "poeira vegetal",
                                 "consequence": "Alergias, irritação nos olhos e nas vias respiratórias, tosse, falta de ar e doenças respiratórias",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de fabricação e produção mecânica de peças e materiais metálicos e de madeiras. Realiza a manutenção de máquinas e equipamentos.",
@@ -40392,17 +40573,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Corte de madeira",
                                 "existingControls": "Óculos de proteção (CA:30013), máscara descartável, luvas de algodão (CA: 34491), luvas de raspa de couro"
                             },
                             {
-                                "id": "xlsx-r200",
-                                "title": "poeiras metálicas (cortes de chapas metálicas)",
+                                "id": "xlsx-r201",
+                                "title": "poeiras mineral",
                                 "category": "Químicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco químicos identificado neste local.",
-                                "hazard": "poeiras metálicas (cortes de chapas metálicas)",
-                                "riskEvent": "poeiras metálicas (cortes de chapas metálicas)",
+                                "hazard": "poeiras mineral",
+                                "riskEvent": "poeiras mineral",
                                 "consequence": "Irritação nos olhos e nas vias respiratórias, tosse, intoxicação e doenças respiratórias",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de fabricação e produção mecânica de peças e materiais metálicos e de madeiras. Realiza a manutenção de máquinas e equipamentos.",
@@ -40414,17 +40596,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "cortes de chapas metálicas",
                                 "existingControls": "Óculos de proteção (CA:30013), máscara descartável, luvas de algodão (CA: 34491), luvas de raspa de couro"
                             },
                             {
-                                "id": "xlsx-r201",
-                                "title": "Ruído (máquinas e equipamentos de cortes)",
+                                "id": "xlsx-r202",
+                                "title": "Ruído",
                                 "category": "Físicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco físicos identificado neste local.",
-                                "hazard": "Ruído (máquinas e equipamentos de cortes)",
-                                "riskEvent": "Ruído (máquinas e equipamentos de cortes)",
+                                "hazard": "Ruído",
+                                "riskEvent": "Ruído",
                                 "consequence": "Perda auditiva, zumbido nos ouvidos, estresse, irritabilidade e dificuldade de concentração",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de fabricação e produção mecânica de peças e materiais metálicos e de madeiras. Realiza a manutenção de máquinas e equipamentos.",
@@ -40435,17 +40618,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "máquinas e equipamentos de cortes"
                             },
                             {
-                                "id": "xlsx-r202",
-                                "title": "radiação ultravioleta (soldagem)",
+                                "id": "xlsx-r203",
+                                "title": "radiação ultravioleta",
                                 "category": "Físicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco físicos identificado neste local.",
-                                "hazard": "radiação ultravioleta (soldagem)",
-                                "riskEvent": "radiação ultravioleta (soldagem)",
+                                "hazard": "radiação ultravioleta",
+                                "riskEvent": "radiação ultravioleta",
                                 "consequence": "Queimaduras na pele, irritação e lesões nos olhos, podendo causar inflamação da córnea e danos à visão",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de fabricação e produção mecânica de peças e materiais metálicos e de madeiras. Realiza a manutenção de máquinas e equipamentos.",
@@ -40457,10 +40641,11 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Soldagem",
                                 "existingControls": "luvas de raspa de couro, máscara de solda (CA: 47930), e avental."
                             },
                             {
-                                "id": "xlsx-r203",
+                                "id": "xlsx-r204",
                                 "title": "Exigência de posturas inadequadas",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
@@ -40481,14 +40666,14 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r204",
-                                "title": "esforço físico intenso (acionamento de máquinas mecânicas)",
+                                "id": "xlsx-r205",
+                                "title": "Esforço físico intenso",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "esforço físico intenso (acionamento de máquinas mecânicas)",
-                                "riskEvent": "esforço físico intenso (acionamento de máquinas mecânicas)",
+                                "hazard": "Esforço físico intenso",
+                                "riskEvent": "Esforço físico intenso",
                                 "consequence": "Fadiga muscular, dores na coluna e nas articulações, distensões musculares e lesões musculoesqueléticas",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de fabricação e produção mecânica de peças e materiais metálicos e de madeiras. Realiza a manutenção de máquinas e equipamentos.",
@@ -40499,17 +40684,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Acionamento de máquinas mecânicas"
                             },
                             {
-                                "id": "xlsx-r205",
-                                "title": "desconforto térmico por falta de ventilação adequada",
+                                "id": "xlsx-r206",
+                                "title": "Desconforto térmico",
                                 "category": "Ergonômicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco ergonômicos identificado neste local.",
-                                "hazard": "desconforto térmico por falta de ventilação adequada",
-                                "riskEvent": "desconforto térmico por falta de ventilação adequada",
+                                "hazard": "Desconforto térmico",
+                                "riskEvent": "Desconforto térmico",
                                 "consequence": "Mal-estar, fadiga, tontura, dor de cabeça, desidratação e dificuldade de concentração",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de fabricação e produção mecânica de peças e materiais metálicos e de madeiras. Realiza a manutenção de máquinas e equipamentos.",
@@ -40520,17 +40706,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Ausência de ventilação adequada"
                             },
                             {
-                                "id": "xlsx-r206",
-                                "title": "Utilização de máquinas com zonas de perigo desprotegidas",
+                                "id": "xlsx-r207",
+                                "title": "Máquinas e equipamentos sem proteção adequada",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Utilização de máquinas com zonas de perigo desprotegidas",
-                                "riskEvent": "Utilização de máquinas com zonas de perigo desprotegidas",
+                                "hazard": "Máquinas e equipamentos sem proteção adequada",
+                                "riskEvent": "Máquinas e equipamentos sem proteção adequada",
                                 "consequence": "Cortes, esmagamentos, amputações, fraturas e lesões graves, podendo causar incapacidade permanente ou morte",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de fabricação e produção mecânica de peças e materiais metálicos e de madeiras. Realiza a manutenção de máquinas e equipamentos.",
@@ -40542,17 +40729,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Máquinas e equipamentos diversos",
                                 "existingControls": "Barreira de impedimento de acesso a zonas de perigos (em algumas máquinas)."
                             },
                             {
-                                "id": "xlsx-r207",
-                                "title": "utilização de ferramentas manuais cortantes",
+                                "id": "xlsx-r208",
+                                "title": "Utilização de materiais ou ferramentas cortantes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "utilização de ferramentas manuais cortantes",
-                                "riskEvent": "utilização de ferramentas manuais cortantes",
+                                "hazard": "Utilização de materiais ou ferramentas cortantes",
+                                "riskEvent": "Utilização de materiais ou ferramentas cortantes",
                                 "consequence": "Cortes, perfurações, hemorragias e lesões nas mãos e nos dedos",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de fabricação e produção mecânica de peças e materiais metálicos e de madeiras. Realiza a manutenção de máquinas e equipamentos.",
@@ -40563,10 +40751,11 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Materiais e ferramentas diversas"
                             },
                             {
-                                "id": "xlsx-r208",
+                                "id": "xlsx-r209",
                                 "title": "arranjo físico inadequado",
                                 "category": "Acidentes",
                                 "level": "baixo",
@@ -40587,7 +40776,7 @@ exports.CAMPUS_DATA = [
                                 ]
                             },
                             {
-                                "id": "xlsx-r209",
+                                "id": "xlsx-r210",
                                 "title": "armazenamento inadequado",
                                 "category": "Acidentes",
                                 "level": "baixo",
@@ -40609,14 +40798,14 @@ exports.CAMPUS_DATA = [
                                 "existingControls": "Extintores de Incêndio."
                             },
                             {
-                                "id": "xlsx-r210",
-                                "title": "sobrecarga elétrica",
+                                "id": "xlsx-r211",
+                                "title": "Sobrecarga elétrica",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "sobrecarga elétrica",
-                                "riskEvent": "sobrecarga elétrica",
+                                "hazard": "Sobrecarga elétrica",
+                                "riskEvent": "Sobrecarga elétrica",
                                 "consequence": "Choques elétricos, queimaduras, curto-circuitos, incêndios e risco de morte",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de fabricação e produção mecânica de peças e materiais metálicos e de madeiras. Realiza a manutenção de máquinas e equipamentos.",
@@ -40627,17 +40816,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Máquinas e equipamentos diveros"
                             },
                             {
-                                "id": "xlsx-r211",
-                                "title": "utilização de gás comprimido (cilindro de argônio)",
+                                "id": "xlsx-r212",
+                                "title": "Utilização de gases (ou mistura) sob pressão",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "utilização de gás comprimido (cilindro de argônio)",
-                                "riskEvent": "utilização de gás comprimido (cilindro de argônio)",
+                                "hazard": "Utilização de gases (ou mistura) sob pressão",
+                                "riskEvent": "Utilização de gases (ou mistura) sob pressão",
                                 "consequence": "Asfixia por deslocamento do oxigênio, vazamentos, explosões por ruptura do cilindro e lesões por impacto",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de fabricação e produção mecânica de peças e materiais metálicos e de madeiras. Realiza a manutenção de máquinas e equipamentos.",
@@ -40649,17 +40839,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "cilindro de argônio",
                                 "existingControls": "máscara descartável,"
                             },
                             {
-                                "id": "xlsx-r212",
-                                "title": "projeção de partículas de metais ou madeiras",
+                                "id": "xlsx-r213",
+                                "title": "Atividade com projeção de partículas perigosas",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "projeção de partículas de metais ou madeiras",
-                                "riskEvent": "projeção de partículas de metais ou madeiras",
+                                "hazard": "Atividade com projeção de partículas perigosas",
+                                "riskEvent": "Atividade com projeção de partículas perigosas",
                                 "consequence": "Lesões nos olhos, cortes, perfurações, ferimentos na pele e danos à visão",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de fabricação e produção mecânica de peças e materiais metálicos e de madeiras. Realiza a manutenção de máquinas e equipamentos.",
@@ -40671,17 +40862,18 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ],
+                                "source": "Máquinas e equipamentos diversos",
                                 "existingControls": "Óculos de proteção (CA:30013), máscara descartável, luvas de algodão (CA: 34491), luvas de raspa de couro"
                             },
                             {
-                                "id": "xlsx-r213",
-                                "title": "contato com superfícies aquecidas",
+                                "id": "xlsx-r214",
+                                "title": "Contato com superfícies quentes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "contato com superfícies aquecidas",
-                                "riskEvent": "contato com superfícies aquecidas",
+                                "hazard": "Contato com superfícies quentes",
+                                "riskEvent": "Contato com superfícies quentes",
                                 "consequence": "Queimaduras",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de fabricação e produção mecânica de peças e materiais metálicos e de madeiras. Realiza a manutenção de máquinas e equipamentos.",
@@ -40692,7 +40884,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Equipamentos diversos que transmitem calor"
                             }
                         ]
                     }
@@ -40737,14 +40930,14 @@ exports.CAMPUS_DATA = [
                         "exposureGroup": "Alunos, servidores e visitantes",
                         "risks": [
                             {
-                                "id": "xlsx-r214",
-                                "title": "Utilização de ferramentas manuais cortantes",
+                                "id": "xlsx-r215",
+                                "title": "Utilização de materiais ou ferramentas cortantes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Utilização de ferramentas manuais cortantes",
-                                "riskEvent": "Utilização de ferramentas manuais cortantes",
+                                "hazard": "Utilização de materiais ou ferramentas cortantes",
+                                "riskEvent": "Utilização de materiais ou ferramentas cortantes",
                                 "consequence": "Cortes, perfurações, hemorragias e lesões nas mãos e nos dedos",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino teórico e prático com montagem de experimentos de hidráulica e pneumática em bancadas didáticas. Realiza o ensino do funcionamento de sistemas de circuitos pneumáticos com ar pressurizado e de acionamento por pistão. Realiza o ensino de propriedades hidráulicas.",
@@ -40755,7 +40948,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Materiais e ferramentas diversas"
                             }
                         ]
                     },
@@ -40773,14 +40967,14 @@ exports.CAMPUS_DATA = [
                         "exposureGroup": "Alunos, servidores e visitantes",
                         "risks": [
                             {
-                                "id": "xlsx-r215",
-                                "title": "Substâncias composta ou produtos químicos em geral",
+                                "id": "xlsx-r216",
+                                "title": "Gases e Vapores",
                                 "category": "Químicos",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco químicos identificado neste local.",
-                                "hazard": "Substâncias composta ou produtos químicos em geral",
-                                "riskEvent": "Substâncias composta ou produtos químicos em geral",
+                                "hazard": "Gases e Vapores",
+                                "riskEvent": "Gases e Vapores",
                                 "consequence": "Intoxicações, queimaduras químicas, irritações na pele e nos olhos, alergias e problemas respiratórios",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino teórico e prático das propriedades termodinâmicas e químicas de amostras de fluidos em geral. Realiza a simulação de propriedades termodinâmicas e de refrigeração em unidade didática.",
@@ -40791,17 +40985,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Substâncias compostas e produtos químicos em geral"
                             },
                             {
-                                "id": "xlsx-r216",
-                                "title": "Armazenamento inadequado de produtos químicos",
+                                "id": "xlsx-r217",
+                                "title": "Armazenamento de materiais ou substâncias inflamáveis ou combustíveis",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Armazenamento inadequado de produtos químicos",
-                                "riskEvent": "Armazenamento inadequado de produtos químicos",
+                                "hazard": "Armazenamento de materiais ou substâncias inflamáveis ou combustíveis",
+                                "riskEvent": "Armazenamento de materiais ou substâncias inflamáveis ou combustíveis",
                                 "consequence": "Vazamentos, intoxicações, queimaduras químicas, contaminação, incêndios e reações químicas perigosas",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino teórico e prático das propriedades termodinâmicas e químicas de amostras de fluidos em geral. Realiza a simulação de propriedades termodinâmicas e de refrigeração em unidade didática.",
@@ -40812,17 +41007,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Substâncias compostas ou Produtos Químicos em geral"
                             },
                             {
-                                "id": "xlsx-r217",
-                                "title": "contato com superfícies aquecidas",
+                                "id": "xlsx-r218",
+                                "title": "Contato com superfícies quentes",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "contato com superfícies aquecidas",
-                                "riskEvent": "contato com superfícies aquecidas",
+                                "hazard": "Contato com superfícies quentes",
+                                "riskEvent": "Contato com superfícies quentes",
                                 "consequence": "Queimaduras na pele, vermelhidão, bolhas e lesões nos tecidos",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino teórico e prático das propriedades termodinâmicas e químicas de amostras de fluidos em geral. Realiza a simulação de propriedades termodinâmicas e de refrigeração em unidade didática.",
@@ -40833,17 +41029,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Equipamentos diversos que transmitem calor"
                             },
                             {
-                                "id": "xlsx-r218",
-                                "title": "manuseio de produtos químicos",
+                                "id": "xlsx-r219",
+                                "title": "Manipulação de produtos químicos perigosos",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "manuseio de produtos químicos",
-                                "riskEvent": "manuseio de produtos químicos",
+                                "hazard": "Manipulação de produtos químicos perigosos",
+                                "riskEvent": "Manipulação de produtos químicos perigosos",
                                 "consequence": "Intoxicações, queimaduras químicas, irritações na pele e nos olhos, alergias e problemas respiratórios",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino teórico e prático das propriedades termodinâmicas e químicas de amostras de fluidos em geral. Realiza a simulação de propriedades termodinâmicas e de refrigeração em unidade didática.",
@@ -40854,17 +41051,18 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Substâncias compostas ou Produtos Químicos em geral"
                             },
                             {
-                                "id": "xlsx-r219",
-                                "title": "manuseio de vidrarias",
+                                "id": "xlsx-r220",
+                                "title": "Manuseio de vidrarias",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "manuseio de vidrarias",
-                                "riskEvent": "manuseio de vidrarias",
+                                "hazard": "Manuseio de vidrarias",
+                                "riskEvent": "Manuseio de vidrarias",
                                 "consequence": "Cortes, perfurações, hemorragias e lesões nas mãos e nos dedos",
                                 "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino teórico e prático das propriedades termodinâmicas e químicas de amostras de fluidos em geral. Realiza a simulação de propriedades termodinâmicas e de refrigeração em unidade didática.",
@@ -40875,7 +41073,8 @@ exports.CAMPUS_DATA = [
                                 "updatedAt": "2026-09-28",
                                 "flags": [
                                     "sem-classificacao"
-                                ]
+                                ],
+                                "source": "Vidrarias diversas"
                             }
                         ]
                     },
@@ -40893,16 +41092,16 @@ exports.CAMPUS_DATA = [
                         "exposureGroup": "Alunos, servidores e visitantes",
                         "risks": [
                             {
-                                "id": "xlsx-r220",
-                                "title": "Acidentes",
+                                "id": "xlsx-r221",
+                                "title": "Arranjo físico inadequado",
                                 "category": "Acidentes",
                                 "level": "baixo",
                                 "status": "pendente",
                                 "description": "Risco acidentes identificado neste local.",
-                                "hazard": "Acidentes",
-                                "riskEvent": "Acidentes",
-                                "consequence": "Não informado.",
-                                "exposedPublic": "Alunos, servidores e visitantes",
+                                "hazard": "Arranjo físico inadequado",
+                                "riskEvent": "Arranjo físico inadequado",
+                                "consequence": "Quedas, tropeços, colisões, contusões e dificuldade de circulação no ambiente de trabalho.",
+                                "exposedPublic": "Alunos e servidores",
                                 "circulation": "Atividades de ensino e pesquisas acadêmicas aplicadas na área de transporte de calor em massa, com amostras de produtos agrícolas (sementes), materiais cerâmicos (tijolos, etc.) e materiais compósitos (fibras de carbono, vidro, etc.)  Realiza a secagem e pesagem de amostras de produtos e materiais.",
                                 "severity": 0,
                                 "probability": 0,
@@ -40912,6 +41111,51 @@ exports.CAMPUS_DATA = [
                                 "flags": [
                                     "sem-classificacao"
                                 ]
+                            },
+                            {
+                                "id": "xlsx-r222",
+                                "title": "Contato com superfícies quentes",
+                                "category": "Acidentes",
+                                "level": "baixo",
+                                "status": "pendente",
+                                "description": "Risco acidentes identificado neste local.",
+                                "hazard": "Contato com superfícies quentes",
+                                "riskEvent": "Contato com superfícies quentes",
+                                "consequence": "Queimaduras na pele, vermelhidão, bolhas e lesões nos tecidos",
+                                "exposedPublic": "Alunos e servidores",
+                                "circulation": "Atividades de ensino e pesquisas acadêmicas aplicadas na área de transporte de calor em massa, com amostras de produtos agrícolas (sementes), materiais cerâmicos (tijolos, etc.) e materiais compósitos (fibras de carbono, vidro, etc.)  Realiza a secagem e pesagem de amostras de produtos e materiais.",
+                                "severity": 0,
+                                "probability": 0,
+                                "riskScore": 0,
+                                "registeredAt": "2026-09-28",
+                                "updatedAt": "2026-09-28",
+                                "flags": [
+                                    "sem-classificacao"
+                                ],
+                                "source": "Equipamentos diversos que transmitem calor"
+                            },
+                            {
+                                "id": "xlsx-r223",
+                                "title": "Sobrecarga elétrica",
+                                "category": "Acidentes",
+                                "level": "baixo",
+                                "status": "pendente",
+                                "description": "Risco acidentes identificado neste local.",
+                                "hazard": "Sobrecarga elétrica",
+                                "riskEvent": "Sobrecarga elétrica",
+                                "consequence": "Choques elétricos, queimaduras, curto-circuitos, incêndios e risco de morte",
+                                "exposedPublic": "Alunos e servidores",
+                                "circulation": "Atividades de ensino e pesquisas acadêmicas aplicadas na área de transporte de calor em massa, com amostras de produtos agrícolas (sementes), materiais cerâmicos (tijolos, etc.) e materiais compósitos (fibras de carbono, vidro, etc.)  Realiza a secagem e pesagem de amostras de produtos e materiais.",
+                                "severity": 0,
+                                "probability": 0,
+                                "riskScore": 0,
+                                "registeredAt": "2026-09-28",
+                                "updatedAt": "2026-09-28",
+                                "flags": [
+                                    "sem-classificacao"
+                                ],
+                                "source": "Máquinas e equipamentos diveros",
+                                "existingControls": "Extintores de Incêndio (no corredor da edificação)."
                             }
                         ]
                     }
