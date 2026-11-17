@@ -18077,6 +18077,90 @@ const formInput = {
     border: '1.5px solid var(--mr-border)', fontSize: 12, outline: 'none', background: 'var(--mr-surface)',
     fontFamily: 'inherit', color: 'var(--mr-text)',
 };
+function SearchableSelect({ id, value, options, onChange, placeholder, searchPlaceholder = 'Buscar bloco…', emptyText = 'Nenhum bloco encontrado', ariaLabel, style, }) {
+    const [open, setOpen] = (0, react_1.useState)(false);
+    const [query, setQuery] = (0, react_1.useState)('');
+    const [active, setActive] = (0, react_1.useState)(0);
+    const rootRef = (0, react_1.useRef)(null);
+    const inputRef = (0, react_1.useRef)(null);
+    const listId = `${id}-lista`;
+    const selected = options.find(o => o.value === value);
+    const q = normalizeText(query.trim());
+    // Quem tem uma palavra igual à busca (ex.: a sigla "bl") vem primeiro.
+    const filtered = q
+        ? options
+            .filter(o => normalizeText(`${o.label} ${o.hint ?? ''}`).includes(q))
+            .map((o, i) => ({ o, i, exact: normalizeText(o.label).split(/\s+/).includes(q) }))
+            .sort((a, b) => Number(b.exact) - Number(a.exact) || a.i - b.i)
+            .map(x => x.o)
+        : options;
+    (0, react_1.useEffect)(() => {
+        if (!open)
+            return;
+        setActive(Math.max(0, options.findIndex(o => o.value === value)));
+        inputRef.current?.focus();
+        const onDown = (e) => {
+            if (rootRef.current && !rootRef.current.contains(e.target))
+                close();
+        };
+        document.addEventListener('mousedown', onDown);
+        return () => document.removeEventListener('mousedown', onDown);
+    }, [open]);
+    (0, react_1.useEffect)(() => {
+        if (open)
+            document.getElementById(`${listId}-${active}`)?.scrollIntoView({ block: 'nearest' });
+    }, [active, open]);
+    function close() {
+        setOpen(false);
+        setQuery('');
+    }
+    function choose(option) {
+        onChange(option.value);
+        close();
+    }
+    function onKeyDown(e) {
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setActive(a => Math.min(a + 1, filtered.length - 1));
+        }
+        else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setActive(a => Math.max(a - 1, 0));
+        }
+        else if (e.key === 'Enter') {
+            e.preventDefault();
+            const o = filtered[active];
+            if (o)
+                choose(o);
+        }
+        else if (e.key === 'Escape') {
+            e.preventDefault();
+            close();
+        }
+    }
+    return ((0, jsx_runtime_1.jsxs)("div", { ref: rootRef, style: { position: 'relative', ...style }, children: [(0, jsx_runtime_1.jsxs)("button", { type: "button", id: id, "aria-haspopup": "listbox", "aria-expanded": open, "aria-label": ariaLabel, onClick: () => (open ? close() : setOpen(true)), style: {
+                    width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                    padding: '7px 10px', borderRadius: 8, border: '1.5px solid var(--mr-border)',
+                    background: 'var(--mr-surface)', color: selected ? 'var(--mr-text)' : 'var(--mr-text-muted)',
+                    fontSize: 12, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', boxSizing: 'border-box',
+                }, children: [(0, jsx_runtime_1.jsx)("span", { style: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }, children: selected ? selected.label : placeholder }), (0, jsx_runtime_1.jsx)("span", { "aria-hidden": "true", style: { fontSize: 9, color: 'var(--mr-text-muted)' }, children: "\u25BE" })] }), open && ((0, jsx_runtime_1.jsxs)("div", { style: {
+                    position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 3000,
+                    minWidth: '100%', width: 280, maxWidth: '90vw', boxSizing: 'border-box',
+                    background: 'var(--mr-surface)', border: '1px solid var(--mr-border)', borderRadius: 10,
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.18)', overflow: 'hidden',
+                }, children: [(0, jsx_runtime_1.jsx)("div", { style: { padding: 8, borderBottom: '1px solid var(--mr-line)' }, children: (0, jsx_runtime_1.jsx)("input", { ref: inputRef, value: query, onChange: e => { setQuery(e.target.value); setActive(0); }, onKeyDown: onKeyDown, placeholder: searchPlaceholder, "aria-label": searchPlaceholder, role: "combobox", "aria-controls": listId, "aria-expanded": true, "aria-activedescendant": filtered[active] ? `${listId}-${active}` : undefined, style: {
+                                width: '100%', boxSizing: 'border-box', padding: '7px 10px', borderRadius: 7,
+                                border: '1.5px solid var(--mr-border)', background: 'var(--mr-surface-2)',
+                                color: 'var(--mr-text)', fontSize: 12, outline: 'none', fontFamily: 'inherit',
+                            } }) }), (0, jsx_runtime_1.jsxs)("ul", { id: listId, role: "listbox", style: { listStyle: 'none', margin: 0, padding: 4, maxHeight: 240, overflowY: 'auto' }, children: [filtered.length === 0 && ((0, jsx_runtime_1.jsx)("li", { style: { padding: 10, fontSize: 12, color: 'var(--mr-text-muted)' }, children: emptyText })), filtered.map((o, i) => {
+                                const isSelected = o.value === value;
+                                return ((0, jsx_runtime_1.jsxs)("li", { id: `${listId}-${i}`, role: "option", "aria-selected": isSelected, onMouseEnter: () => setActive(i), onMouseDown: e => e.preventDefault(), onClick: () => choose(o), style: {
+                                        padding: '7px 10px', borderRadius: 6, cursor: 'pointer',
+                                        background: i === active ? 'var(--mr-green-soft)' : 'transparent',
+                                        display: 'flex', flexDirection: 'column', gap: 1,
+                                    }, children: [(0, jsx_runtime_1.jsxs)("span", { style: { fontSize: 12, fontWeight: isSelected ? 700 : 500, color: 'var(--mr-text)' }, children: [isSelected ? '✓ ' : '', o.label] }), o.hint && (0, jsx_runtime_1.jsx)("span", { style: { fontSize: 10, color: 'var(--mr-text-muted)' }, children: o.hint })] }, o.value));
+                            })] })] }))] }));
+}
 function EngineerDashboard() {
     const [activeNav, setActiveNav] = (0, react_1.useState)('relatos');
     const [selectedId, setSelectedId] = (0, react_1.useState)(reports_1.REPORTS[0]?.id ?? null);
@@ -18176,8 +18260,11 @@ function EngineerDashboard() {
                                             }, children: (0, jsx_runtime_1.jsx)("span", { style: { color: kpi.color }, children: kpi.icon }) }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 24, fontWeight: 800, color: 'var(--mr-text)', fontFamily: 'DM Sans, Inter, sans-serif', lineHeight: 1 }, children: kpi.value }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 11, color: 'var(--mr-text-muted)', marginTop: 3 }, children: kpi.label })] })] }, kpi.label))) }), (0, jsx_runtime_1.jsxs)("div", { style: { padding: '14px 24px', display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }, children: [(0, jsx_runtime_1.jsx)("input", { value: searchQ, onChange: e => setSearchQ(e.target.value), placeholder: "Buscar apontamento...", style: {
                                             padding: '7px 12px', borderRadius: 8, border: '1.5px solid var(--mr-border)',
                                             fontSize: 12, outline: 'none', background: 'var(--mr-surface)', minWidth: 180,
-                                        } }), [
-                                        { label: 'Bloco', options: blockOptions.map(o => ({ value: o, label: o === 'Todos' ? 'Todos os blocos' : o })), value: filterBlock, set: setFilterBlock },
+                                        } }), (0, jsx_runtime_1.jsx)(SearchableSelect, { id: "filtro-bloco", ariaLabel: "Filtrar por bloco", value: filterBlock, onChange: setFilterBlock, placeholder: "Todos os blocos", options: blockOptions.map(o => ({
+                                            value: o,
+                                            label: o === 'Todos' ? 'Todos os blocos' : o,
+                                            hint: o === 'Todos' ? undefined : data_1.CAMPUS_DATA.find(b => b.shortName === o)?.fullName,
+                                        })), style: { minWidth: 170 } }), [
                                         {
                                             label: 'Tipo',
                                             options: [
@@ -18227,7 +18314,11 @@ function EngineerDashboard() {
                                                                                 cursor: selectedOpen ? 'pointer' : 'default',
                                                                                 opacity: !selectedOpen && !active ? 0.45 : 1,
                                                                             }, children: [(0, jsx_runtime_1.jsx)("span", { style: { fontSize: 10 }, children: t.icon }), t.label] }, key));
-                                                                    }) })] }), form && ((0, jsx_runtime_1.jsxs)("fieldset", { disabled: !selectedOpen, style: { border: 'none', margin: 0, padding: 0, minWidth: 0 }, children: [(0, jsx_runtime_1.jsx)("div", { style: { ...sectionLabel, marginBottom: 10 }, children: "Cadastro do risco" }), (0, jsx_runtime_1.jsxs)("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }, children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-block", children: "Bloco *" }), (0, jsx_runtime_1.jsxs)("select", { id: "rf-block", value: form.blockId, onChange: e => updateForm(selectedReport, { blockId: e.target.value, roomId: '' }), style: formInput, children: [(0, jsx_runtime_1.jsx)("option", { value: "", children: "Selecione o bloco" }), data_1.CAMPUS_DATA.map(b => (0, jsx_runtime_1.jsx)("option", { value: b.id, children: b.name }, b.id))] }), selectedReport.blockCode && !formBlock && !form.blockId && ((0, jsx_runtime_1.jsxs)("div", { style: { fontSize: 10, color: '#a66a00', marginTop: 3 }, children: ["O bloco ", selectedReport.blockCode, " ainda n\u00E3o est\u00E1 cadastrado no mapa."] }))] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-room", children: "Ambiente" }), (0, jsx_runtime_1.jsxs)("select", { id: "rf-room", value: form.roomId, onChange: e => updateForm(selectedReport, { roomId: e.target.value }), disabled: !formBlock, style: formInput, children: [(0, jsx_runtime_1.jsx)("option", { value: "", children: "\u00C1rea geral do bloco" }), formRooms.map(({ room, floor }) => ((0, jsx_runtime_1.jsxs)("option", { value: room.id, children: [room.name, " \u00B7 ", floor] }, room.id)))] })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1' }, children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-hazard", children: "Perigo (fator de risco) *" }), (0, jsx_runtime_1.jsx)("input", { id: "rf-hazard", value: form.hazard, onChange: e => updateForm(selectedReport, { hazard: e.target.value }), placeholder: "Ex.: Instala\u00E7\u00F5es de esgoto aparentes", style: formInput })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-source", children: "Fonte/origem" }), (0, jsx_runtime_1.jsx)("input", { id: "rf-source", value: form.source, onChange: e => updateForm(selectedReport, { source: e.target.value }), style: formInput })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-exposed", children: "P\u00FAblico exposto *" }), (0, jsx_runtime_1.jsx)("input", { id: "rf-exposed", list: "rf-exposed-options", value: form.exposedPublic, onChange: e => updateForm(selectedReport, { exposedPublic: e.target.value }), style: formInput }), (0, jsx_runtime_1.jsx)("datalist", { id: "rf-exposed-options", children: EXPOSED_PUBLIC_OPTIONS.map(o => (0, jsx_runtime_1.jsx)("option", { value: o }, o)) })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1' }, children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-consequence", children: "Poss\u00EDveis consequ\u00EAncias *" }), (0, jsx_runtime_1.jsx)("textarea", { id: "rf-consequence", rows: 2, value: form.consequence, onChange: e => updateForm(selectedReport, { consequence: e.target.value }), style: { ...formInput, resize: 'vertical' } })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1' }, children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-controls", children: "Medidas de controle existentes" }), (0, jsx_runtime_1.jsx)("textarea", { id: "rf-controls", rows: 2, value: form.existingControls, onChange: e => updateForm(selectedReport, { existingControls: e.target.value }), style: { ...formInput, resize: 'vertical' } })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-prob", children: "Probabilidade (P) *" }), (0, jsx_runtime_1.jsxs)("select", { id: "rf-prob", value: form.probability, onChange: e => updateForm(selectedReport, { probability: Number(e.target.value) }), style: formInput, children: [(0, jsx_runtime_1.jsx)("option", { value: 0, children: "Selecione" }), [1, 2, 3, 4, 5].map(n => (0, jsx_runtime_1.jsx)("option", { value: n, children: n }, n))] })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-sev", children: "Severidade (S) *" }), (0, jsx_runtime_1.jsxs)("select", { id: "rf-sev", value: form.severity, onChange: e => updateForm(selectedReport, { severity: Number(e.target.value) }), style: formInput, children: [(0, jsx_runtime_1.jsx)("option", { value: 0, children: "Selecione" }), [1, 2, 3, 4, 5].map(n => (0, jsx_runtime_1.jsx)("option", { value: n, children: n }, n))] })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'var(--mr-surface-2)', borderRadius: 8, border: '1px solid var(--mr-green-soft)' }, children: [(0, jsx_runtime_1.jsxs)("span", { style: { fontSize: 12, color: 'var(--mr-text-2)' }, children: ["Risco (P\u00D7S): ", (0, jsx_runtime_1.jsx)("strong", { style: { color: 'var(--mr-text)' }, children: riskScore || '—' })] }), (0, jsx_runtime_1.jsx)("span", { style: { fontSize: 12, color: 'var(--mr-text-2)', marginLeft: 8 }, children: "Classifica\u00E7\u00E3o:" }), riskScore
+                                                                    }) })] }), form && ((0, jsx_runtime_1.jsxs)("fieldset", { disabled: !selectedOpen, style: { border: 'none', margin: 0, padding: 0, minWidth: 0 }, children: [(0, jsx_runtime_1.jsx)("div", { style: { ...sectionLabel, marginBottom: 10 }, children: "Cadastro do risco" }), (0, jsx_runtime_1.jsxs)("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }, children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-block", children: "Bloco *" }), (0, jsx_runtime_1.jsx)(SearchableSelect, { id: "rf-block", value: form.blockId, onChange: v => updateForm(selectedReport, { blockId: v, roomId: '' }), placeholder: "Selecione o bloco", options: data_1.CAMPUS_DATA.map(b => ({
+                                                                                        value: b.id,
+                                                                                        label: b.name,
+                                                                                        hint: b.fullName && b.fullName !== b.name ? b.fullName : undefined,
+                                                                                    })) }), selectedReport.blockCode && !formBlock && !form.blockId && ((0, jsx_runtime_1.jsxs)("div", { style: { fontSize: 10, color: '#a66a00', marginTop: 3 }, children: ["O bloco ", selectedReport.blockCode, " ainda n\u00E3o est\u00E1 cadastrado no mapa."] }))] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-room", children: "Ambiente" }), (0, jsx_runtime_1.jsxs)("select", { id: "rf-room", value: form.roomId, onChange: e => updateForm(selectedReport, { roomId: e.target.value }), disabled: !formBlock, style: formInput, children: [(0, jsx_runtime_1.jsx)("option", { value: "", children: "\u00C1rea geral do bloco" }), formRooms.map(({ room, floor }) => ((0, jsx_runtime_1.jsxs)("option", { value: room.id, children: [room.name, " \u00B7 ", floor] }, room.id)))] })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1' }, children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-hazard", children: "Perigo (fator de risco) *" }), (0, jsx_runtime_1.jsx)("input", { id: "rf-hazard", value: form.hazard, onChange: e => updateForm(selectedReport, { hazard: e.target.value }), placeholder: "Ex.: Instala\u00E7\u00F5es de esgoto aparentes", style: formInput })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-source", children: "Fonte/origem" }), (0, jsx_runtime_1.jsx)("input", { id: "rf-source", value: form.source, onChange: e => updateForm(selectedReport, { source: e.target.value }), style: formInput })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-exposed", children: "P\u00FAblico exposto *" }), (0, jsx_runtime_1.jsx)("input", { id: "rf-exposed", list: "rf-exposed-options", value: form.exposedPublic, onChange: e => updateForm(selectedReport, { exposedPublic: e.target.value }), style: formInput }), (0, jsx_runtime_1.jsx)("datalist", { id: "rf-exposed-options", children: EXPOSED_PUBLIC_OPTIONS.map(o => (0, jsx_runtime_1.jsx)("option", { value: o }, o)) })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1' }, children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-consequence", children: "Poss\u00EDveis consequ\u00EAncias *" }), (0, jsx_runtime_1.jsx)("textarea", { id: "rf-consequence", rows: 2, value: form.consequence, onChange: e => updateForm(selectedReport, { consequence: e.target.value }), style: { ...formInput, resize: 'vertical' } })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1' }, children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-controls", children: "Medidas de controle existentes" }), (0, jsx_runtime_1.jsx)("textarea", { id: "rf-controls", rows: 2, value: form.existingControls, onChange: e => updateForm(selectedReport, { existingControls: e.target.value }), style: { ...formInput, resize: 'vertical' } })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-prob", children: "Probabilidade (P) *" }), (0, jsx_runtime_1.jsxs)("select", { id: "rf-prob", value: form.probability, onChange: e => updateForm(selectedReport, { probability: Number(e.target.value) }), style: formInput, children: [(0, jsx_runtime_1.jsx)("option", { value: 0, children: "Selecione" }), [1, 2, 3, 4, 5].map(n => (0, jsx_runtime_1.jsx)("option", { value: n, children: n }, n))] })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-sev", children: "Severidade (S) *" }), (0, jsx_runtime_1.jsxs)("select", { id: "rf-sev", value: form.severity, onChange: e => updateForm(selectedReport, { severity: Number(e.target.value) }), style: formInput, children: [(0, jsx_runtime_1.jsx)("option", { value: 0, children: "Selecione" }), [1, 2, 3, 4, 5].map(n => (0, jsx_runtime_1.jsx)("option", { value: n, children: n }, n))] })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'var(--mr-surface-2)', borderRadius: 8, border: '1px solid var(--mr-green-soft)' }, children: [(0, jsx_runtime_1.jsxs)("span", { style: { fontSize: 12, color: 'var(--mr-text-2)' }, children: ["Risco (P\u00D7S): ", (0, jsx_runtime_1.jsx)("strong", { style: { color: 'var(--mr-text)' }, children: riskScore || '—' })] }), (0, jsx_runtime_1.jsx)("span", { style: { fontSize: 12, color: 'var(--mr-text-2)', marginLeft: 8 }, children: "Classifica\u00E7\u00E3o:" }), riskScore
                                                                                     ? (0, jsx_runtime_1.jsx)(RiskBadge, { level: levelFromScore(riskScore), size: "md" })
                                                                                     : (0, jsx_runtime_1.jsx)("span", { style: { fontSize: 12, color: 'var(--mr-text-muted)' }, children: "preencha P e S" })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1' }, children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-rec", children: "Recomenda\u00E7\u00F5es" }), (0, jsx_runtime_1.jsx)("textarea", { id: "rf-rec", rows: 3, value: form.recommendation, onChange: e => updateForm(selectedReport, { recommendation: e.target.value }), placeholder: "Medidas recomendadas e setor respons\u00E1vel", style: { ...formInput, resize: 'vertical' } })] })] })] }))] }), (0, jsx_runtime_1.jsx)("div", { style: {
                                                         padding: '12px 20px', borderTop: '1px solid var(--mr-border)',
