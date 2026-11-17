@@ -18196,7 +18196,7 @@ function DotScale({ id, labelledBy, value, onChange }) {
 }
 function EngineerDashboard() {
     const [activeNav, setActiveNav] = (0, react_1.useState)('relatos');
-    const [selectedId, setSelectedId] = (0, react_1.useState)(reports_1.REPORTS[0]?.id ?? null);
+    const [selectedId, setSelectedId] = (0, react_1.useState)(null);
     const [filterBlock, setFilterBlock] = (0, react_1.useState)('Todos');
     const [filterType, setFilterType] = (0, react_1.useState)('Todos');
     const [filterStatus, setFilterStatus] = (0, react_1.useState)('Todos');
@@ -18247,7 +18247,11 @@ function EngineerDashboard() {
         if (filterStatus !== 'Todos' && statusOf(r) !== filterStatus)
             return false;
         return true;
-    });
+    })
+        // Apontamentos com foto primeiro (prioridade de conferência pedida no formulário);
+        // dentro de cada grupo, mais recentes primeiro.
+        .sort((a, b) => Number(b.images.length > 0) - Number(a.images.length > 0)
+        || (b.submittedAt || '').localeCompare(a.submittedAt || ''));
     const selectedReport = filteredReports.find(r => r.id === selectedId) ?? filteredReports[0] ?? null;
     const selectedType = selectedReport ? typeOf(selectedReport) : null;
     const selectedStatus = selectedReport ? statusOf(selectedReport) : null;
