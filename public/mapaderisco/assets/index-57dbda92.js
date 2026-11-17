@@ -11,7 +11,7 @@ const App_1 = __importDefault(require("./App"));
 require("./index.css");
 client_1.default.createRoot(document.getElementById('root')).render((0, jsx_runtime_1.jsx)(react_1.default.StrictMode, { children: (0, jsx_runtime_1.jsx)(App_1.default, {}) }));
 
-},{"react/jsx-runtime":1,"react":3,"react-dom/client":5,"./App":11,"./index.css":56}];// src/main.tsx
+},{"react/jsx-runtime":1,"react":3,"react-dom/client":5,"./App":11,"./index.css":57}];// src/main.tsx
 defs[1]=[function(module,exports,require){'use strict';
 
 if ("production" === 'production') {
@@ -17317,6 +17317,7 @@ const react_leaflet_1 = require("react-leaflet");
 require("leaflet/dist/leaflet.css");
 const data_1 = require("./data");
 const reports_1 = require("./reports");
+const theme_1 = require("./theme");
 // ─── Risk Level Helpers ───────────────────────────────────────────────────────
 function levelColor(level) {
     switch (level) {
@@ -17351,11 +17352,11 @@ function levelIcon(level) {
     }
 }
 const RISK_TYPE_THEME = {
-    fisico: { label: 'Físico', color: '#2e7d32', bg: '#eef8ef', border: '#a8d5ad', icon: '●' },
-    quimico: { label: 'Químico', color: '#c62828', bg: '#fff0ef', border: '#efb4ad', icon: '◆' },
-    biologico: { label: 'Biológico', color: '#795548', bg: '#f7f1ee', border: '#d2b8ad', icon: '✚' },
-    ergonomico: { label: 'Ergonômico', color: '#a66a00', bg: '#fff8d7', border: '#e9c85e', icon: '■' },
-    acidente: { label: 'Acidente', color: '#1565c0', bg: '#edf5ff', border: '#a8cdf7', icon: '▲' },
+    fisico: { label: 'Físico', color: 'var(--rt-fisico)', bg: 'var(--rt-fisico-bg)', border: 'var(--rt-fisico-border)', icon: '●' },
+    quimico: { label: 'Químico', color: 'var(--rt-quimico)', bg: 'var(--rt-quimico-bg)', border: 'var(--rt-quimico-border)', icon: '◆' },
+    biologico: { label: 'Biológico', color: 'var(--rt-biologico)', bg: 'var(--rt-biologico-bg)', border: 'var(--rt-biologico-border)', icon: '✚' },
+    ergonomico: { label: 'Ergonômico', color: 'var(--rt-ergonomico)', bg: 'var(--rt-ergonomico-bg)', border: 'var(--rt-ergonomico-border)', icon: '■' },
+    acidente: { label: 'Acidente', color: 'var(--rt-acidente)', bg: 'var(--rt-acidente-bg)', border: 'var(--rt-acidente-border)', icon: '▲' },
 };
 function normalizeText(value) {
     return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -17417,7 +17418,7 @@ function statusColor(status) {
     switch (status) {
         case 'pendente': return { bg: '#fffbe6', fg: '#8b6b00' };
         case 'avaliacao': return { bg: '#e8f2fb', fg: '#1a5c8c' };
-        case 'validado': return { bg: '#edfaf3', fg: '#1a5c38' };
+        case 'validado': return { bg: '#edfaf3', fg: 'var(--mr-primary-text)' };
         case 'resolvido': return { bg: '#f3f4f6', fg: '#4b5563' };
         case 'rejeitado': return { bg: '#fef2f2', fg: '#b91c1c' };
     }
@@ -17476,8 +17477,8 @@ function StatusBadge({ status }) {
         }, children: statusLabel(status) }));
 }
 function Breadcrumb({ parts }) {
-    return ((0, jsx_runtime_1.jsx)("div", { style: { display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#6b7f74', flexWrap: 'wrap' }, children: parts.map((p, i) => ((0, jsx_runtime_1.jsxs)("span", { style: { display: 'flex', alignItems: 'center', gap: 4 }, children: [i > 0 && (0, jsx_runtime_1.jsx)("span", { style: { color: '#c5d1cc' }, children: "\u203A" }), (0, jsx_runtime_1.jsx)("span", { onClick: p.onClick, style: {
-                        color: p.onClick ? '#1a5c38' : '#0f1a14',
+    return ((0, jsx_runtime_1.jsx)("div", { style: { display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--mr-text-muted)', flexWrap: 'wrap' }, children: parts.map((p, i) => ((0, jsx_runtime_1.jsxs)("span", { style: { display: 'flex', alignItems: 'center', gap: 4 }, children: [i > 0 && (0, jsx_runtime_1.jsx)("span", { style: { color: '#c5d1cc' }, children: "\u203A" }), (0, jsx_runtime_1.jsx)("span", { onClick: p.onClick, style: {
+                        color: p.onClick ? 'var(--mr-primary-text)' : 'var(--mr-text)',
                         fontWeight: p.onClick ? 500 : 600,
                         cursor: p.onClick ? 'pointer' : 'default',
                         textDecoration: p.onClick ? 'none' : 'none',
@@ -17653,8 +17654,8 @@ function CampusOsmOverlay({ campusGeoJson, selectedBlockId, onSelectBlock, }) {
                 if (block) {
                     return {
                         className: 'campus-block-perimeter',
-                        color: isSelected ? '#1a5c38' : '#795548',
-                        fillColor: isSelected ? '#e8f5ee' : '#d5cbc3',
+                        color: isSelected ? 'var(--mr-primary-text)' : '#795548',
+                        fillColor: isSelected ? 'var(--mr-green-soft)' : '#d5cbc3',
                         fillOpacity: isSelected ? 0.62 : 0.5,
                         opacity: 0.9,
                         weight: isSelected ? 2.2 : 1.5,
@@ -17717,7 +17718,7 @@ function CampusMap({ selectedBlockId, onSelectBlock, focusTarget, selectedRiskTy
             active = false;
         };
     }, []);
-    return ((0, jsx_runtime_1.jsxs)("div", { style: { position: 'relative', width: '100%', height: '100%' }, children: [(0, jsx_runtime_1.jsxs)(react_leaflet_1.MapContainer, { center: CAMPUS_CENTER, zoom: MAP_INITIAL_ZOOM, minZoom: MAP_MIN_ZOOM, maxZoom: MAP_MAX_ZOOM, scrollWheelZoom: true, style: { width: '100%', height: '100%', background: '#eef1f4' }, "aria-label": "Mapa real do campus da UFCG com pontos de risco monitorados", children: [(0, jsx_runtime_1.jsx)(react_leaflet_1.TileLayer, { attribution: '\u00A9 <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', maxNativeZoom: MAP_MAX_ZOOM, maxZoom: MAP_MAX_ZOOM, noWrap: true, url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" }), (0, jsx_runtime_1.jsx)(CampusOsmOverlay, { campusGeoJson: campusGeoJson, selectedBlockId: selectedBlockId, onSelectBlock: onSelectBlock }), (0, jsx_runtime_1.jsx)(MapFocus, { target: focusTarget }), locationMarkers.map(location => {
+    return ((0, jsx_runtime_1.jsxs)("div", { style: { position: 'relative', width: '100%', height: '100%' }, children: [(0, jsx_runtime_1.jsxs)(react_leaflet_1.MapContainer, { center: CAMPUS_CENTER, zoom: MAP_INITIAL_ZOOM, minZoom: MAP_MIN_ZOOM, maxZoom: MAP_MAX_ZOOM, scrollWheelZoom: true, style: { width: '100%', height: '100%', background: 'var(--mr-map-bg)' }, "aria-label": "Mapa real do campus da UFCG com pontos de risco monitorados", children: [(0, jsx_runtime_1.jsx)(react_leaflet_1.TileLayer, { attribution: '\u00A9 <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', maxNativeZoom: MAP_MAX_ZOOM, maxZoom: MAP_MAX_ZOOM, noWrap: true, url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" }), (0, jsx_runtime_1.jsx)(CampusOsmOverlay, { campusGeoJson: campusGeoJson, selectedBlockId: selectedBlockId, onSelectBlock: onSelectBlock }), (0, jsx_runtime_1.jsx)(MapFocus, { target: focusTarget }), locationMarkers.map(location => {
                         const block = data_1.CAMPUS_DATA.find(item => item.id === location.blockId);
                         if (!block)
                             return null;
@@ -17738,10 +17739,10 @@ function CampusMap({ selectedBlockId, onSelectBlock, focusTarget, selectedRiskTy
                                 },
                             } }, `${location.id}-risk-summary`));
                     })] }), (0, jsx_runtime_1.jsx)("div", { style: {
-                    position: 'absolute', top: 16, left: 16,
-                    background: 'rgba(255,255,255,0.94)', borderRadius: 9, padding: '8px 12px',
-                    border: '1px solid #e2e8e4', boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                    fontSize: 11, fontWeight: 650, color: '#2d4a38', pointerEvents: 'none',
+                    position: 'absolute', top: 16, left: 56,
+                    background: 'var(--mr-surface)', borderRadius: 9, padding: '8px 12px',
+                    border: '1px solid var(--mr-border)', boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                    fontSize: 11, fontWeight: 650, color: 'var(--mr-text-2)', pointerEvents: 'none',
                 }, children: "Campus Campina Grande \u00B7 Setor CCT" })] }));
 }
 // ─── Block Panel ──────────────────────────────────────────────────────────────
@@ -17769,32 +17770,32 @@ function BlockPanel({ block, onClose, onSelectRoom, onSelectRisk, selectedRoomId
             height: compact ? '44vh' : '100%',
             maxHeight: compact ? '52vh' : undefined,
             minHeight: compact ? 260 : undefined,
-            background: 'white',
-            borderRight: compact ? 'none' : '1px solid #e2e8e4',
-            borderTop: compact ? '1px solid #e2e8e4' : 'none',
+            background: 'var(--mr-surface)',
+            borderRight: compact ? 'none' : '1px solid var(--mr-border)',
+            borderTop: compact ? '1px solid var(--mr-border)' : 'none',
             display: 'flex',
             flexDirection: 'column',
             flexShrink: 0,
             boxShadow: compact ? '0 -8px 24px rgba(15,26,20,0.12)' : undefined,
             zIndex: compact ? 10 : undefined,
-        }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { padding: '20px 20px 0', borderBottom: '1px solid #e2e8e4', paddingBottom: 16 }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 4 }, children: [(0, jsx_runtime_1.jsx)(Breadcrumb, { parts: [
+        }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { padding: '20px 20px 0', borderBottom: '1px solid var(--mr-border)', paddingBottom: 16 }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 4 }, children: [(0, jsx_runtime_1.jsx)(Breadcrumb, { parts: [
                                     { label: 'Campus', onClick: onClose },
                                     { label: block.shortName },
                                 ] }), (0, jsx_runtime_1.jsx)("button", { onClick: onClose, style: {
                                     border: 'none', background: 'none', cursor: 'pointer',
-                                    color: '#6b7f74', fontSize: 18, lineHeight: 1, padding: '0 2px',
-                                }, children: "\u00D7" })] }), (0, jsx_runtime_1.jsxs)("div", { style: { marginTop: 10 }, children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 22, fontWeight: 700, fontFamily: 'DM Sans, Inter, sans-serif', color: '#0f1a14' }, children: block.name }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 12, color: '#6b7f74', marginTop: 2 }, children: block.fullName }), block.description && ((0, jsx_runtime_1.jsx)("div", { style: {
+                                    color: 'var(--mr-text-muted)', fontSize: 18, lineHeight: 1, padding: '0 2px',
+                                }, children: "\u00D7" })] }), (0, jsx_runtime_1.jsxs)("div", { style: { marginTop: 10 }, children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 22, fontWeight: 700, fontFamily: 'DM Sans, Inter, sans-serif', color: 'var(--mr-text)' }, children: block.name }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 12, color: 'var(--mr-text-muted)', marginTop: 2 }, children: block.fullName }), block.description && ((0, jsx_runtime_1.jsx)("div", { style: {
                                     marginTop: 8,
                                     fontSize: 12,
-                                    color: '#0f1a14',
+                                    color: 'var(--mr-text)',
                                     lineHeight: 1.45,
                                     maxHeight: 86,
                                     overflowY: 'auto',
                                     paddingRight: 4,
                                 }, children: block.description }))] }), (0, jsx_runtime_1.jsx)("div", { style: {
                             marginTop: 12,
-                            border: '1px solid #e2e8e4',
-                            background: '#f9fbf9',
+                            border: '1px solid var(--mr-border)',
+                            background: 'var(--mr-surface-2)',
                             borderRadius: 8,
                             overflow: 'hidden',
                         }, children: (0, jsx_runtime_1.jsx)("img", { src: publicAssetUrl(block.imageUrl), alt: `Imagem do ${block.name}`, style: {
@@ -17802,43 +17803,43 @@ function BlockPanel({ block, onClose, onSelectRoom, onSelectRisk, selectedRoomId
                                 width: '100%',
                                 aspectRatio: '16 / 10',
                                 objectFit: 'cover',
-                                background: '#f0f2f4',
+                                background: 'var(--mr-line)',
                             } }) })] }), (0, jsx_runtime_1.jsxs)("div", { className: compact ? 'mobile-sheet-scroll' : undefined, style: { flex: 1, overflowY: 'auto', padding: '12px 0' }, children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsxs)("button", { onClick: () => toggleSection('salas'), style: {
                                     width: '100%',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'space-between',
                                     padding: '10px 20px',
-                                    background: '#f9fbf9',
+                                    background: 'var(--mr-surface-2)',
                                     border: 'none',
-                                    borderBottom: '1px solid #e2e8e4',
+                                    borderBottom: '1px solid var(--mr-border)',
                                     cursor: 'pointer',
-                                    color: '#0f1a14',
+                                    color: 'var(--mr-text)',
                                     fontWeight: 800,
                                     fontSize: 13,
                                     textAlign: 'left',
-                                }, children: [(0, jsx_runtime_1.jsx)("span", { children: "Salas" }), (0, jsx_runtime_1.jsxs)("span", { style: { marginLeft: 'auto', marginRight: 10, fontSize: 11, color: '#6b7f74', fontWeight: 700 }, children: [roomCount, " sala", roomCount === 1 ? '' : 's'] }), (0, jsx_runtime_1.jsx)("span", { style: { fontSize: 11, color: '#6b7f74', transition: 'transform 0.2s', transform: openSections.has('salas') ? 'rotate(180deg)' : '' }, children: "\u25BE" })] }), openSections.has('salas') && block.floors.map(floor => {
+                                }, children: [(0, jsx_runtime_1.jsx)("span", { children: "Salas" }), (0, jsx_runtime_1.jsxs)("span", { style: { marginLeft: 'auto', marginRight: 10, fontSize: 11, color: 'var(--mr-text-muted)', fontWeight: 700 }, children: [roomCount, " sala", roomCount === 1 ? '' : 's'] }), (0, jsx_runtime_1.jsx)("span", { style: { fontSize: 11, color: 'var(--mr-text-muted)', transition: 'transform 0.2s', transform: openSections.has('salas') ? 'rotate(180deg)' : '' }, children: "\u25BE" })] }), openSections.has('salas') && block.floors.map(floor => {
                                 const isOpen = openFloors.has(floor.id);
                                 return ((0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsxs)("button", { onClick: () => toggleFloor(floor.id), style: {
                                                 width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                                                 padding: '8px 20px', background: 'none', border: 'none', cursor: 'pointer',
-                                                color: '#0f1a14', fontWeight: 600, fontSize: 13,
-                                                borderBottom: '1px solid #f0f2f4',
+                                                color: 'var(--mr-text)', fontWeight: 600, fontSize: 13,
+                                                borderBottom: '1px solid var(--mr-line)',
                                             }, children: [(0, jsx_runtime_1.jsxs)("span", { style: { display: 'flex', alignItems: 'center', gap: 8 }, children: [(0, jsx_runtime_1.jsx)("span", { style: {
-                                                                width: 22, height: 22, borderRadius: 6, background: '#f0f4f1',
+                                                                width: 22, height: 22, borderRadius: 6, background: 'var(--mr-surface-2)',
                                                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                                fontSize: 10, color: '#1a5c38', fontWeight: 700,
-                                                            }, children: floor.name.charAt(0) }), floor.name] }), (0, jsx_runtime_1.jsxs)("span", { style: { fontSize: 12, color: '#6b7f74', display: 'flex', alignItems: 'center', gap: 6 }, children: [(0, jsx_runtime_1.jsxs)("span", { children: [floor.rooms.length, " amb."] }), (0, jsx_runtime_1.jsx)("span", { style: { fontSize: 10, transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : '' }, children: "\u25BE" })] })] }), isOpen && ((0, jsx_runtime_1.jsx)("div", { style: { padding: '4px 12px 4px' }, children: floor.rooms.map(room => {
+                                                                fontSize: 10, color: 'var(--mr-primary-text)', fontWeight: 700,
+                                                            }, children: floor.name.charAt(0) }), floor.name] }), (0, jsx_runtime_1.jsxs)("span", { style: { fontSize: 12, color: 'var(--mr-text-muted)', display: 'flex', alignItems: 'center', gap: 6 }, children: [(0, jsx_runtime_1.jsxs)("span", { children: [floor.rooms.length, " amb."] }), (0, jsx_runtime_1.jsx)("span", { style: { fontSize: 10, transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : '' }, children: "\u25BE" })] })] }), isOpen && ((0, jsx_runtime_1.jsx)("div", { style: { padding: '4px 12px 4px' }, children: floor.rooms.map(room => {
                                                 const isSelected = selectedRoomId === room.id;
                                                 return ((0, jsx_runtime_1.jsx)("button", { onClick: () => onSelectRoom(room, floor.name), style: {
                                                         width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                                        padding: '9px 10px', background: isSelected ? '#e8f5ee' : 'none',
+                                                        padding: '9px 10px', background: isSelected ? 'var(--mr-green-soft)' : 'none',
                                                         border: 'none', borderRadius: 8,
                                                         cursor: 'pointer', marginBottom: 2, textAlign: 'left',
                                                         transition: 'background 0.15s',
                                                     }, onMouseEnter: e => { if (!isSelected)
-                                                        e.currentTarget.style.background = '#f5f6f8'; }, onMouseLeave: e => { if (!isSelected)
-                                                        e.currentTarget.style.background = 'none'; }, children: (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 13, fontWeight: 600, color: isSelected ? '#1a5c38' : '#0f1a14', marginBottom: 1 }, children: room.code }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 11, color: '#6b7f74' }, children: roomTypeLabel(room.type) })] }) }, room.id));
+                                                        e.currentTarget.style.background = 'var(--mr-bg)'; }, onMouseLeave: e => { if (!isSelected)
+                                                        e.currentTarget.style.background = 'none'; }, children: (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 13, fontWeight: 600, color: isSelected ? 'var(--mr-primary-text)' : 'var(--mr-text)', marginBottom: 1 }, children: room.code }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 11, color: 'var(--mr-text-muted)' }, children: roomTypeLabel(room.type) })] }) }, room.id));
                                             }) }))] }, floor.id));
                             })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsxs)("button", { onClick: () => toggleSection('riscos'), style: {
                                     width: '100%',
@@ -17846,27 +17847,27 @@ function BlockPanel({ block, onClose, onSelectRoom, onSelectRisk, selectedRoomId
                                     alignItems: 'center',
                                     justifyContent: 'space-between',
                                     padding: '10px 20px',
-                                    background: '#f9fbf9',
+                                    background: 'var(--mr-surface-2)',
                                     border: 'none',
-                                    borderTop: '1px solid #f0f2f4',
-                                    borderBottom: '1px solid #e2e8e4',
+                                    borderTop: '1px solid var(--mr-line)',
+                                    borderBottom: '1px solid var(--mr-border)',
                                     cursor: 'pointer',
-                                    color: '#0f1a14',
+                                    color: 'var(--mr-text)',
                                     fontWeight: 800,
                                     fontSize: 13,
                                     textAlign: 'left',
-                                }, children: [(0, jsx_runtime_1.jsx)("span", { children: "Riscos do bloco" }), (0, jsx_runtime_1.jsxs)("span", { style: { marginLeft: 'auto', marginRight: 10, fontSize: 11, color: '#6b7f74', fontWeight: 700 }, children: [blockActiveRisks.length, " risco", blockActiveRisks.length === 1 ? '' : 's'] }), (0, jsx_runtime_1.jsx)("span", { style: { fontSize: 11, color: '#6b7f74', transition: 'transform 0.2s', transform: openSections.has('riscos') ? 'rotate(180deg)' : '' }, children: "\u25BE" })] }), openSections.has('riscos') && ((0, jsx_runtime_1.jsx)("div", { style: { padding: '12px 20px' }, children: blockActiveRisks.length === 0 ? ((0, jsx_runtime_1.jsx)("div", { style: { fontSize: 12, color: '#6b7f74', lineHeight: 1.45 }, children: "Nenhum risco pr\u00F3prio cadastrado para este bloco." })) : ((0, jsx_runtime_1.jsx)("div", { style: { display: 'grid', gap: 8 }, children: blockActiveRisks.map(risk => {
+                                }, children: [(0, jsx_runtime_1.jsx)("span", { children: "Riscos do bloco" }), (0, jsx_runtime_1.jsxs)("span", { style: { marginLeft: 'auto', marginRight: 10, fontSize: 11, color: 'var(--mr-text-muted)', fontWeight: 700 }, children: [blockActiveRisks.length, " risco", blockActiveRisks.length === 1 ? '' : 's'] }), (0, jsx_runtime_1.jsx)("span", { style: { fontSize: 11, color: 'var(--mr-text-muted)', transition: 'transform 0.2s', transform: openSections.has('riscos') ? 'rotate(180deg)' : '' }, children: "\u25BE" })] }), openSections.has('riscos') && ((0, jsx_runtime_1.jsx)("div", { style: { padding: '12px 20px' }, children: blockActiveRisks.length === 0 ? ((0, jsx_runtime_1.jsx)("div", { style: { fontSize: 12, color: 'var(--mr-text-muted)', lineHeight: 1.45 }, children: "Nenhum risco pr\u00F3prio cadastrado para este bloco." })) : ((0, jsx_runtime_1.jsx)("div", { style: { display: 'grid', gap: 8 }, children: blockActiveRisks.map(risk => {
                                         const isSelected = selectedRiskId === risk.id;
                                         const theme = riskTypeTheme(risk.category);
                                         return ((0, jsx_runtime_1.jsx)("button", { onClick: () => onSelectRisk(risk), style: {
                                                 width: '100%',
                                                 textAlign: 'left',
-                                                background: isSelected ? theme.bg : 'white',
-                                                border: `1.5px solid ${isSelected ? theme.color : '#e2e8e4'}`,
+                                                background: isSelected ? theme.bg : 'var(--mr-surface)',
+                                                border: `1.5px solid ${isSelected ? theme.color : 'var(--mr-border)'}`,
                                                 borderRadius: 8,
                                                 padding: '9px 10px',
                                                 cursor: 'pointer',
-                                            }, children: (0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }, children: [(0, jsx_runtime_1.jsx)("span", { style: { fontSize: 12, fontWeight: 700, color: '#0f1a14', lineHeight: 1.35 }, children: risk.title }), (0, jsx_runtime_1.jsx)(RiskTypeTag, { category: risk.category })] }) }, risk.id));
+                                            }, children: (0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }, children: [(0, jsx_runtime_1.jsx)("span", { style: { fontSize: 12, fontWeight: 700, color: 'var(--mr-text)', lineHeight: 1.35 }, children: risk.title }), (0, jsx_runtime_1.jsx)(RiskTypeTag, { category: risk.category })] }) }, risk.id));
                                     }) })) }))] })] })] }));
 }
 // ─── Room Detail Panel ────────────────────────────────────────────────────────
@@ -17878,19 +17879,19 @@ function RoomPanel({ room, floorName, block, onBack, onClose, onSelectRisk, sele
             height: compact ? '45vh' : '100%',
             maxHeight: compact ? '54vh' : undefined,
             minHeight: compact ? 280 : undefined,
-            background: 'white',
-            borderRight: compact ? 'none' : '1px solid #e2e8e4',
-            borderTop: compact ? '1px solid #e2e8e4' : 'none',
+            background: 'var(--mr-surface)',
+            borderRight: compact ? 'none' : '1px solid var(--mr-border)',
+            borderTop: compact ? '1px solid var(--mr-border)' : 'none',
             display: 'flex', flexDirection: 'column', flexShrink: 0,
             boxShadow: compact ? '0 -8px 24px rgba(15,26,20,0.12)' : undefined,
             zIndex: compact ? 10 : undefined,
-        }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { padding: '20px 20px 16px', borderBottom: '1px solid #e2e8e4' }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', alignItems: 'center', gap: 10 }, children: [(0, jsx_runtime_1.jsx)("button", { onClick: onBack, "aria-label": "Voltar para o bloco", title: "Voltar para o bloco", style: {
+        }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { padding: '20px 20px 16px', borderBottom: '1px solid var(--mr-border)' }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', alignItems: 'center', gap: 10 }, children: [(0, jsx_runtime_1.jsx)("button", { onClick: onBack, "aria-label": "Voltar para o bloco", title: "Voltar para o bloco", style: {
                                     width: 30,
                                     height: 30,
                                     borderRadius: 7,
-                                    border: '1px solid #e2e8e4',
-                                    background: 'white',
-                                    color: '#1a5c38',
+                                    border: '1px solid var(--mr-border)',
+                                    background: 'var(--mr-surface)',
+                                    color: 'var(--mr-primary-text)',
                                     cursor: 'pointer',
                                     display: 'flex',
                                     alignItems: 'center',
@@ -17898,7 +17899,7 @@ function RoomPanel({ room, floorName, block, onBack, onClose, onSelectRisk, sele
                                     fontSize: 16,
                                     fontWeight: 800,
                                     flexShrink: 0,
-                                }, onMouseEnter: e => (e.currentTarget.style.background = '#e8f5ee'), onMouseLeave: e => (e.currentTarget.style.background = 'white'), children: "\u2190" }), (0, jsx_runtime_1.jsx)(Breadcrumb, { parts: [
+                                }, onMouseEnter: e => (e.currentTarget.style.background = 'var(--mr-green-soft)'), onMouseLeave: e => (e.currentTarget.style.background = 'var(--mr-surface)'), children: "\u2190" }), (0, jsx_runtime_1.jsx)(Breadcrumb, { parts: [
                                     { label: 'Campus', onClick: onBack },
                                     { label: block.shortName, onClick: onBack },
                                     { label: floorName, onClick: onBack },
@@ -17909,20 +17910,20 @@ function RoomPanel({ room, floorName, block, onBack, onClose, onSelectRisk, sele
                                     height: 30,
                                     borderRadius: 7,
                                     border: 'none',
-                                    background: '#f0f2f4',
-                                    color: '#6b7f74',
+                                    background: 'var(--mr-line)',
+                                    color: 'var(--mr-text-muted)',
                                     cursor: 'pointer',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     fontSize: 16,
                                     flexShrink: 0,
-                                }, onMouseEnter: e => (e.currentTarget.style.background = '#e2e8e4'), onMouseLeave: e => (e.currentTarget.style.background = '#f0f2f4'), children: "\u00D7" })] }), (0, jsx_runtime_1.jsxs)("div", { style: { marginTop: 12 }, children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 22, fontWeight: 700, fontFamily: 'DM Sans, Inter, sans-serif' }, children: room.code }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 12, color: '#6b7f74', marginTop: 2 }, children: roomTypeLabel(room.type) })] }), rs.total > 0 ? ((0, jsx_runtime_1.jsx)("div", { style: { marginTop: 12, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }, children: rs.lastUpdate && (0, jsx_runtime_1.jsxs)("span", { style: { fontSize: 11, color: '#6b7f74' }, children: ["Atualizado ", rs.lastUpdate] }) })) : ((0, jsx_runtime_1.jsx)("div", { style: { marginTop: 12, fontSize: 13, color: '#22a861', fontWeight: 600 }, children: "Nenhum risco neste ambiente" }))] }), (0, jsx_runtime_1.jsxs)("div", { className: compact ? 'mobile-sheet-scroll' : undefined, style: { flex: 1, overflowY: 'auto', padding: 16 }, children: [activeRisks.length === 0 && ((0, jsx_runtime_1.jsx)("div", { style: { textAlign: 'center', padding: '40px 20px', color: '#6b7f74', fontSize: 13 }, children: "Este ambiente n\u00E3o possui riscos registrados." })), activeRisks.map(risk => {
+                                }, onMouseEnter: e => (e.currentTarget.style.background = 'var(--mr-border)'), onMouseLeave: e => (e.currentTarget.style.background = 'var(--mr-line)'), children: "\u00D7" })] }), (0, jsx_runtime_1.jsxs)("div", { style: { marginTop: 12 }, children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 22, fontWeight: 700, fontFamily: 'DM Sans, Inter, sans-serif' }, children: room.code }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 12, color: 'var(--mr-text-muted)', marginTop: 2 }, children: roomTypeLabel(room.type) })] }), rs.total > 0 ? ((0, jsx_runtime_1.jsx)("div", { style: { marginTop: 12, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }, children: rs.lastUpdate && (0, jsx_runtime_1.jsxs)("span", { style: { fontSize: 11, color: 'var(--mr-text-muted)' }, children: ["Atualizado ", rs.lastUpdate] }) })) : ((0, jsx_runtime_1.jsx)("div", { style: { marginTop: 12, fontSize: 13, color: '#22a861', fontWeight: 600 }, children: "Nenhum risco neste ambiente" }))] }), (0, jsx_runtime_1.jsxs)("div", { className: compact ? 'mobile-sheet-scroll' : undefined, style: { flex: 1, overflowY: 'auto', padding: 16 }, children: [activeRisks.length === 0 && ((0, jsx_runtime_1.jsx)("div", { style: { textAlign: 'center', padding: '40px 20px', color: 'var(--mr-text-muted)', fontSize: 13 }, children: "Este ambiente n\u00E3o possui riscos registrados." })), activeRisks.map(risk => {
                         const isSelected = selectedRiskId === risk.id;
                         const theme = riskTypeTheme(risk.category);
                         return ((0, jsx_runtime_1.jsxs)("button", { onClick: () => onSelectRisk(risk), style: {
-                                width: '100%', textAlign: 'left', background: isSelected ? theme.bg : 'white',
-                                border: `1.5px solid ${isSelected ? theme.color : '#e2e8e4'}`,
+                                width: '100%', textAlign: 'left', background: isSelected ? theme.bg : 'var(--mr-surface)',
+                                border: `1.5px solid ${isSelected ? theme.color : 'var(--mr-border)'}`,
                                 borderRadius: 10, padding: '12px 14px', marginBottom: 8,
                                 cursor: 'pointer', display: 'block',
                                 transition: 'all 0.15s',
@@ -17930,10 +17931,10 @@ function RoomPanel({ room, floorName, block, onBack, onClose, onSelectRisk, sele
                                 e.currentTarget.style.borderColor = theme.border;
                                 e.currentTarget.style.background = theme.bg;
                             } }, onMouseLeave: e => { if (!isSelected) {
-                                e.currentTarget.style.borderColor = '#e2e8e4';
-                                e.currentTarget.style.background = 'white';
-                            } }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }, children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 13, fontWeight: 600, color: '#0f1a14', lineHeight: 1.4, flex: 1 }, children: risk.title }), (0, jsx_runtime_1.jsx)(RiskTypeTag, { category: risk.category })] }), (0, jsx_runtime_1.jsxs)("div", { style: { marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }, children: [(0, jsx_runtime_1.jsx)(StatusBadge, { status: risk.status }), (0, jsx_runtime_1.jsx)("span", { style: { fontSize: 11, color: '#6b7f74' }, children: risk.updatedAt })] })] }, risk.id));
-                    }), room.risks.filter(r => r.status === 'resolvido' || r.status === 'rejeitado').length > 0 && ((0, jsx_runtime_1.jsxs)("div", { style: { marginTop: 8, fontSize: 11, color: '#6b7f74', textAlign: 'center' }, children: ["+ ", room.risks.filter(r => r.status === 'resolvido' || r.status === 'rejeitado').length, " risco(s) resolvido(s) n\u00E3o exibido(s)"] }))] })] }));
+                                e.currentTarget.style.borderColor = 'var(--mr-border)';
+                                e.currentTarget.style.background = 'var(--mr-surface)';
+                            } }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }, children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 13, fontWeight: 600, color: 'var(--mr-text)', lineHeight: 1.4, flex: 1 }, children: risk.title }), (0, jsx_runtime_1.jsx)(RiskTypeTag, { category: risk.category })] }), (0, jsx_runtime_1.jsxs)("div", { style: { marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }, children: [(0, jsx_runtime_1.jsx)(StatusBadge, { status: risk.status }), (0, jsx_runtime_1.jsx)("span", { style: { fontSize: 11, color: 'var(--mr-text-muted)' }, children: risk.updatedAt })] })] }, risk.id));
+                    }), room.risks.filter(r => r.status === 'resolvido' || r.status === 'rejeitado').length > 0 && ((0, jsx_runtime_1.jsxs)("div", { style: { marginTop: 8, fontSize: 11, color: 'var(--mr-text-muted)', textAlign: 'center' }, children: ["+ ", room.risks.filter(r => r.status === 'resolvido' || r.status === 'rejeitado').length, " risco(s) resolvido(s) n\u00E3o exibido(s)"] }))] })] }));
 }
 // ─── Risk Detail Drawer ───────────────────────────────────────────────────────
 function RiskDrawer({ risk, breadcrumb, onClose, compact = false, narrow = false, }) {
@@ -17944,27 +17945,27 @@ function RiskDrawer({ risk, breadcrumb, onClose, compact = false, narrow = false
             height: compact ? '42vh' : '100%',
             maxHeight: compact ? '50vh' : undefined,
             minHeight: compact ? 260 : undefined,
-            background: 'white',
-            borderRight: compact ? 'none' : '1px solid #e2e8e4',
-            borderTop: compact ? '1px solid #e2e8e4' : 'none',
+            background: 'var(--mr-surface)',
+            borderRight: compact ? 'none' : '1px solid var(--mr-border)',
+            borderTop: compact ? '1px solid var(--mr-border)' : 'none',
             display: 'flex', flexDirection: 'column', flexShrink: 0,
             boxShadow: compact ? '0 -8px 24px rgba(15,26,20,0.12)' : undefined,
             zIndex: compact ? 12 : 5,
         }, children: [(0, jsx_runtime_1.jsxs)("div", { style: {
-                    padding: '16px 20px', borderBottom: '1px solid #e2e8e4',
+                    padding: '16px 20px', borderBottom: '1px solid var(--mr-border)',
                     background: `linear-gradient(135deg, ${riskColor}08, transparent)`,
                 }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }, children: [(0, jsx_runtime_1.jsx)(RiskTypeTag, { category: risk.category, size: "lg" }), (0, jsx_runtime_1.jsx)("button", { onClick: onClose, style: {
-                                    border: 'none', background: '#f0f2f4', cursor: 'pointer', borderRadius: 6,
+                                    border: 'none', background: 'var(--mr-line)', cursor: 'pointer', borderRadius: 6,
                                     width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    fontSize: 16, color: '#6b7f74',
-                                }, children: "\u00D7" })] }), (0, jsx_runtime_1.jsx)("div", { style: { marginTop: 10, fontSize: 16, fontWeight: 700, fontFamily: 'DM Sans, Inter, sans-serif', lineHeight: 1.3 }, children: risk.title }), (0, jsx_runtime_1.jsx)("div", { style: { marginTop: 6, fontSize: 11, color: '#6b7f74' }, children: breadcrumb }), risk.status !== 'pendente' && ((0, jsx_runtime_1.jsx)("div", { style: { marginTop: 8, display: 'flex', gap: 6, alignItems: 'center' }, children: (0, jsx_runtime_1.jsx)(StatusBadge, { status: risk.status }) }))] }), (0, jsx_runtime_1.jsxs)("div", { className: compact ? 'mobile-sheet-scroll' : undefined, style: { flex: 1, overflowY: 'auto' }, children: [(0, jsx_runtime_1.jsx)("div", { style: { padding: '14px 20px', borderBottom: '1px solid #f0f2f4' }, children: [
+                                    fontSize: 16, color: 'var(--mr-text-muted)',
+                                }, children: "\u00D7" })] }), (0, jsx_runtime_1.jsx)("div", { style: { marginTop: 10, fontSize: 16, fontWeight: 700, fontFamily: 'DM Sans, Inter, sans-serif', lineHeight: 1.3 }, children: risk.title }), (0, jsx_runtime_1.jsx)("div", { style: { marginTop: 6, fontSize: 11, color: 'var(--mr-text-muted)' }, children: breadcrumb }), risk.status !== 'pendente' && ((0, jsx_runtime_1.jsx)("div", { style: { marginTop: 8, display: 'flex', gap: 6, alignItems: 'center' }, children: (0, jsx_runtime_1.jsx)(StatusBadge, { status: risk.status }) }))] }), (0, jsx_runtime_1.jsxs)("div", { className: compact ? 'mobile-sheet-scroll' : undefined, style: { flex: 1, overflowY: 'auto' }, children: [(0, jsx_runtime_1.jsx)("div", { style: { padding: '14px 20px', borderBottom: '1px solid var(--mr-line)' }, children: [
                             { label: 'Risco', value: risk.category },
                             { label: 'Perigo (fator de risco)', value: risk.hazard },
                             { label: 'Fonte/origem', value: risk.source },
                             { label: 'Consequência possível', value: risk.consequence },
                             { label: 'Público exposto', value: risk.exposedPublic },
                             { label: 'Medidas de controle', value: risk.existingControls },
-                        ].map(item => ({ ...item, value: item.value?.trim() || 'Não informado' })).map(item => ((0, jsx_runtime_1.jsxs)("div", { style: { marginBottom: 12 }, children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 10, fontWeight: 600, color: '#6b7f74', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 3 }, children: item.label }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 13, color: '#0f1a14', lineHeight: 1.5 }, children: item.value })] }, item.label))) }), (0, jsx_runtime_1.jsxs)("div", { style: { padding: '14px 20px', borderBottom: '1px solid #f0f2f4' }, children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 10, fontWeight: 600, color: '#6b7f74', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }, children: "Descri\u00E7\u00E3o" }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 13, color: '#0f1a14', lineHeight: 1.6 }, children: risk.description })] }), (0, jsx_runtime_1.jsx)("div", { style: { padding: '14px 20px' }, children: (0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', gap: 16 }, children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 10, color: '#6b7f74', marginBottom: 2 }, children: "Registrado em" }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 12, fontWeight: 600, color: '#0f1a14' }, children: risk.registeredAt })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 10, color: '#6b7f74', marginBottom: 2 }, children: "\u00DAltima atualiza\u00E7\u00E3o" }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 12, fontWeight: 600, color: '#0f1a14' }, children: risk.updatedAt })] })] }) })] })] }));
+                        ].map(item => ({ ...item, value: item.value?.trim() || 'Não informado' })).map(item => ((0, jsx_runtime_1.jsxs)("div", { style: { marginBottom: 12 }, children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 10, fontWeight: 600, color: 'var(--mr-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 3 }, children: item.label }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 13, color: 'var(--mr-text)', lineHeight: 1.5 }, children: item.value })] }, item.label))) }), (0, jsx_runtime_1.jsxs)("div", { style: { padding: '14px 20px', borderBottom: '1px solid var(--mr-line)' }, children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 10, fontWeight: 600, color: 'var(--mr-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }, children: "Descri\u00E7\u00E3o" }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 13, color: 'var(--mr-text)', lineHeight: 1.6 }, children: risk.description })] }), (0, jsx_runtime_1.jsx)("div", { style: { padding: '14px 20px' }, children: (0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', gap: 16 }, children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 10, color: 'var(--mr-text-muted)', marginBottom: 2 }, children: "Registrado em" }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 12, fontWeight: 600, color: 'var(--mr-text)' }, children: risk.registeredAt })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 10, color: 'var(--mr-text-muted)', marginBottom: 2 }, children: "\u00DAltima atualiza\u00E7\u00E3o" }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 12, fontWeight: 600, color: 'var(--mr-text)' }, children: risk.updatedAt })] })] }) })] })] }));
 }
 // ─── Engineer Dashboard ───────────────────────────────────────────────────────
 const DASH_STATUS = ['pendente', 'avaliacao', 'validado', 'rejeitado', 'resolvido'];
@@ -18011,14 +18012,14 @@ function ImageViewer({ images, index, onIndex, onClose }) {
     const navBtn = {
         position: 'absolute', top: '50%', transform: 'translateY(-50%)',
         width: 44, height: 44, borderRadius: 22, border: 'none', cursor: 'pointer',
-        background: 'rgba(255,255,255,0.9)', color: '#0f1a14', fontSize: 22, fontWeight: 700,
+        background: 'rgba(255,255,255,0.9)', color: 'var(--mr-text)', fontSize: 22, fontWeight: 700,
     };
     return ((0, jsx_runtime_1.jsxs)("div", { onClick: onClose, style: {
             position: 'fixed', inset: 0, zIndex: 5000, background: 'rgba(8,16,12,0.85)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
-        }, children: [(0, jsx_runtime_1.jsx)("img", { src: reportImageSrc(images[index]), alt: `Imagem ${index + 1} de ${images.length}`, onClick: e => e.stopPropagation(), style: { maxWidth: '92vw', maxHeight: '84vh', objectFit: 'contain', borderRadius: 8, background: '#fff' } }), hasMany && ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsx)("button", { "aria-label": "Imagem anterior", style: { ...navBtn, left: 24 }, onClick: e => { e.stopPropagation(); go(-1); }, children: "\u2039" }), (0, jsx_runtime_1.jsx)("button", { "aria-label": "Pr\u00F3xima imagem", style: { ...navBtn, right: 24 }, onClick: e => { e.stopPropagation(); go(1); }, children: "\u203A" })] })), (0, jsx_runtime_1.jsxs)("div", { style: { position: 'absolute', bottom: 20, left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: 16, alignItems: 'center' }, children: [(0, jsx_runtime_1.jsxs)("span", { style: { color: 'white', fontSize: 13 }, children: [index + 1, " / ", images.length] }), (0, jsx_runtime_1.jsx)("a", { href: images[index], target: "_blank", rel: "noreferrer", onClick: e => e.stopPropagation(), style: { color: '#9dc8af', fontSize: 13, fontWeight: 600 }, children: "Abrir original \u2197" })] }), (0, jsx_runtime_1.jsx)("button", { "aria-label": "Fechar", onClick: onClose, style: { position: 'absolute', top: 16, right: 20, background: 'none', border: 'none', color: 'white', fontSize: 30, cursor: 'pointer' }, children: "\u00D7" })] }));
+        }, children: [(0, jsx_runtime_1.jsx)("img", { src: reportImageSrc(images[index]), alt: `Imagem ${index + 1} de ${images.length}`, onClick: e => e.stopPropagation(), style: { maxWidth: '92vw', maxHeight: '84vh', objectFit: 'contain', borderRadius: 8, background: 'var(--mr-surface)' } }), hasMany && ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsx)("button", { "aria-label": "Imagem anterior", style: { ...navBtn, left: 24 }, onClick: e => { e.stopPropagation(); go(-1); }, children: "\u2039" }), (0, jsx_runtime_1.jsx)("button", { "aria-label": "Pr\u00F3xima imagem", style: { ...navBtn, right: 24 }, onClick: e => { e.stopPropagation(); go(1); }, children: "\u203A" })] })), (0, jsx_runtime_1.jsxs)("div", { style: { position: 'absolute', bottom: 20, left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: 16, alignItems: 'center' }, children: [(0, jsx_runtime_1.jsxs)("span", { style: { color: 'white', fontSize: 13 }, children: [index + 1, " / ", images.length] }), (0, jsx_runtime_1.jsx)("a", { href: images[index], target: "_blank", rel: "noreferrer", onClick: e => e.stopPropagation(), style: { color: '#9dc8af', fontSize: 13, fontWeight: 600 }, children: "Abrir original \u2197" })] }), (0, jsx_runtime_1.jsx)("button", { "aria-label": "Fechar", onClick: onClose, style: { position: 'absolute', top: 16, right: 20, background: 'none', border: 'none', color: 'white', fontSize: 30, cursor: 'pointer' }, children: "\u00D7" })] }));
 }
-const NEUTRAL_THEME = { bg: '#f5f6f8', color: '#9aa8a0' };
+const NEUTRAL_THEME = { bg: 'var(--mr-bg)', color: '#9aa8a0' };
 const EXPOSED_PUBLIC_OPTIONS = [
     'Alunos e servidores',
     'Alunos, servidores e visitantes',
@@ -18070,11 +18071,11 @@ function missingRiskFields(form, type) {
         missing.push('severidade');
     return missing;
 }
-const formLabel = { display: 'block', fontSize: 11, fontWeight: 600, color: '#3d4f45', marginBottom: 4 };
+const formLabel = { display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--mr-text-2)', marginBottom: 4 };
 const formInput = {
     width: '100%', boxSizing: 'border-box', padding: '7px 10px', borderRadius: 8,
-    border: '1.5px solid #e2e8e4', fontSize: 12, outline: 'none', background: 'white',
-    fontFamily: 'inherit', color: '#0f1a14',
+    border: '1.5px solid var(--mr-border)', fontSize: 12, outline: 'none', background: 'var(--mr-surface)',
+    fontFamily: 'inherit', color: 'var(--mr-text)',
 };
 function EngineerDashboard() {
     const [activeNav, setActiveNav] = (0, react_1.useState)('relatos');
@@ -18112,7 +18113,7 @@ function EngineerDashboard() {
     const blockOptions = ['Todos', ...Array.from(new Set(reports_1.REPORTS.map(r => r.blockCode).filter((v) => !!v))).sort((a, b) => a.localeCompare(b, 'pt-BR'))];
     const kpis = [
         { label: 'Aguardando avaliação', value: reports_1.REPORTS.filter(isOpen).length, icon: '◎', color: '#d98a00', bg: '#fff8e6' },
-        { label: 'Validados', value: reports_1.REPORTS.filter(r => statusOf(r) === 'validado').length, icon: '✓', color: '#1a5c38', bg: '#edfaf3' },
+        { label: 'Validados', value: reports_1.REPORTS.filter(r => statusOf(r) === 'validado').length, icon: '✓', color: 'var(--mr-primary-text)', bg: '#edfaf3' },
         { label: 'Rejeitados', value: reports_1.REPORTS.filter(r => statusOf(r) === 'rejeitado').length, icon: '✕', color: '#b91c1c', bg: '#fef2f2' },
         { label: 'Total recebido', value: reports_1.REPORTS.length, icon: '●', color: '#4b5563', bg: '#f3f4f6' },
     ];
@@ -18143,9 +18144,9 @@ function EngineerDashboard() {
         ? 'Nenhum apontamento importado ainda. Eles aparecem aqui depois que a planilha de apontamentos for importada.'
         : 'Nenhum apontamento com esses filtros.';
     const sectionLabel = {
-        fontSize: 10, fontWeight: 600, color: '#6b7f74', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6,
+        fontSize: 10, fontWeight: 600, color: 'var(--mr-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6,
     };
-    return ((0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', height: '100%', background: '#f5f6f8' }, children: [(0, jsx_runtime_1.jsxs)("div", { style: {
+    return ((0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', height: '100%', background: 'var(--mr-bg)' }, children: [(0, jsx_runtime_1.jsxs)("div", { style: {
                     width: 220, background: '#0f3824', display: 'flex', flexDirection: 'column',
                     flexShrink: 0,
                 }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { padding: '20px 20px 16px', borderBottom: '1px solid #ffffff18' }, children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 13, fontWeight: 800, color: '#ffffff', fontFamily: 'DM Sans, Inter, sans-serif', letterSpacing: '-0.02em' }, children: "Mapa Digital de Riscos" }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 10, color: '#7ab897', marginTop: 2, fontWeight: 500 }, children: "Smart Campus \u2014 UFCG" })] }), (0, jsx_runtime_1.jsxs)("nav", { style: { padding: '12px 10px', flex: 1 }, children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 9, color: '#5a8c70', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', padding: '0 10px', marginBottom: 6 }, children: "Painel t\u00E9cnico" }), navItems.map(item => ((0, jsx_runtime_1.jsxs)("button", { onClick: () => setActiveNav(item.id), style: {
@@ -18163,18 +18164,18 @@ function EngineerDashboard() {
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         fontSize: 12, fontWeight: 700, color: 'white', flexShrink: 0,
                                     }, children: "SI" }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 12, fontWeight: 600, color: '#ffffff' }, children: "Equipe t\u00E9cnica" }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 10, color: '#7ab897' }, children: "SIASS \u00B7 UFCG" })] })] }) })] }), (0, jsx_runtime_1.jsxs)("div", { style: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }, children: [(0, jsx_runtime_1.jsx)("div", { style: {
-                            padding: '16px 24px', background: 'white', borderBottom: '1px solid #e2e8e4',
+                            padding: '16px 24px', background: 'var(--mr-surface)', borderBottom: '1px solid var(--mr-border)',
                             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        }, children: (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 20, fontWeight: 700, fontFamily: 'DM Sans, Inter, sans-serif' }, children: "Central de Riscos" }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 12, color: '#6b7f74', marginTop: 1 }, children: "Triagem dos apontamentos da comunidade \u00B7 Campus UFCG" })] }) }), (0, jsx_runtime_1.jsxs)("div", { style: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }, children: [(0, jsx_runtime_1.jsx)("div", { style: { padding: '20px 24px 0', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }, children: kpis.map(kpi => ((0, jsx_runtime_1.jsxs)("div", { style: {
-                                        background: 'white', borderRadius: 12, padding: '14px 16px',
-                                        border: '1px solid #e2e8e4', display: 'flex', alignItems: 'center', gap: 12,
+                        }, children: (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 20, fontWeight: 700, fontFamily: 'DM Sans, Inter, sans-serif' }, children: "Central de Riscos" }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 12, color: 'var(--mr-text-muted)', marginTop: 1 }, children: "Triagem dos apontamentos da comunidade \u00B7 Campus UFCG" })] }) }), (0, jsx_runtime_1.jsxs)("div", { style: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }, children: [(0, jsx_runtime_1.jsx)("div", { style: { padding: '20px 24px 0', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }, children: kpis.map(kpi => ((0, jsx_runtime_1.jsxs)("div", { style: {
+                                        background: 'var(--mr-surface)', borderRadius: 12, padding: '14px 16px',
+                                        border: '1px solid var(--mr-border)', display: 'flex', alignItems: 'center', gap: 12,
                                     }, children: [(0, jsx_runtime_1.jsx)("div", { style: {
                                                 width: 40, height: 40, borderRadius: 10, background: kpi.bg,
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                                 fontSize: 18, flexShrink: 0,
-                                            }, children: (0, jsx_runtime_1.jsx)("span", { style: { color: kpi.color }, children: kpi.icon }) }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 24, fontWeight: 800, color: '#0f1a14', fontFamily: 'DM Sans, Inter, sans-serif', lineHeight: 1 }, children: kpi.value }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 11, color: '#6b7f74', marginTop: 3 }, children: kpi.label })] })] }, kpi.label))) }), (0, jsx_runtime_1.jsxs)("div", { style: { padding: '14px 24px', display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }, children: [(0, jsx_runtime_1.jsx)("input", { value: searchQ, onChange: e => setSearchQ(e.target.value), placeholder: "Buscar apontamento...", style: {
-                                            padding: '7px 12px', borderRadius: 8, border: '1.5px solid #e2e8e4',
-                                            fontSize: 12, outline: 'none', background: 'white', minWidth: 180,
+                                            }, children: (0, jsx_runtime_1.jsx)("span", { style: { color: kpi.color }, children: kpi.icon }) }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 24, fontWeight: 800, color: 'var(--mr-text)', fontFamily: 'DM Sans, Inter, sans-serif', lineHeight: 1 }, children: kpi.value }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 11, color: 'var(--mr-text-muted)', marginTop: 3 }, children: kpi.label })] })] }, kpi.label))) }), (0, jsx_runtime_1.jsxs)("div", { style: { padding: '14px 24px', display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }, children: [(0, jsx_runtime_1.jsx)("input", { value: searchQ, onChange: e => setSearchQ(e.target.value), placeholder: "Buscar apontamento...", style: {
+                                            padding: '7px 12px', borderRadius: 8, border: '1.5px solid var(--mr-border)',
+                                            fontSize: 12, outline: 'none', background: 'var(--mr-surface)', minWidth: 180,
                                         } }), [
                                         { label: 'Bloco', options: blockOptions.map(o => ({ value: o, label: o === 'Todos' ? 'Todos os blocos' : o })), value: filterBlock, set: setFilterBlock },
                                         {
@@ -18188,32 +18189,32 @@ function EngineerDashboard() {
                                         },
                                         { label: 'Status', options: [{ value: 'Todos', label: 'Todos os status' }, ...DASH_STATUS.map(s => ({ value: s, label: statusLabel(s) }))], value: filterStatus, set: setFilterStatus },
                                     ].map(f => ((0, jsx_runtime_1.jsx)("select", { "aria-label": f.label, value: f.value, onChange: e => f.set(e.target.value), style: {
-                                            padding: '7px 10px', borderRadius: 8, border: '1.5px solid #e2e8e4',
-                                            fontSize: 12, outline: 'none', background: 'white', cursor: 'pointer',
-                                        }, children: f.options.map(o => (0, jsx_runtime_1.jsx)("option", { value: o.value, children: o.label }, o.value)) }, f.label))), (0, jsx_runtime_1.jsxs)("span", { style: { marginLeft: 'auto', fontSize: 12, color: '#6b7f74' }, children: [filteredReports.length, " apontamento", filteredReports.length !== 1 ? 's' : ''] })] }), (0, jsx_runtime_1.jsxs)("div", { style: { flex: 1, display: 'flex', gap: 0, overflow: 'hidden', padding: '0 24px 20px' }, children: [(0, jsx_runtime_1.jsxs)("div", { style: {
-                                            width: 340, flexShrink: 0, background: 'white', borderRadius: '12px 0 0 12px',
-                                            border: '1px solid #e2e8e4', borderRight: 'none', overflow: 'hidden', display: 'flex', flexDirection: 'column',
-                                        }, children: [(0, jsx_runtime_1.jsx)("div", { style: { padding: '10px 14px', borderBottom: '1px solid #f0f2f4', fontSize: 11, fontWeight: 600, color: '#6b7f74', textTransform: 'uppercase', letterSpacing: '0.06em' }, children: "Apontamentos" }), (0, jsx_runtime_1.jsxs)("div", { style: { flex: 1, overflowY: 'auto' }, children: [filteredReports.length === 0 && ((0, jsx_runtime_1.jsx)("div", { style: { padding: '24px 16px', fontSize: 12, color: '#6b7f74', lineHeight: 1.6, textAlign: 'center' }, children: emptyMessage })), filteredReports.map(report => {
+                                            padding: '7px 10px', borderRadius: 8, border: '1.5px solid var(--mr-border)',
+                                            fontSize: 12, outline: 'none', background: 'var(--mr-surface)', cursor: 'pointer',
+                                        }, children: f.options.map(o => (0, jsx_runtime_1.jsx)("option", { value: o.value, children: o.label }, o.value)) }, f.label))), (0, jsx_runtime_1.jsxs)("span", { style: { marginLeft: 'auto', fontSize: 12, color: 'var(--mr-text-muted)' }, children: [filteredReports.length, " apontamento", filteredReports.length !== 1 ? 's' : ''] })] }), (0, jsx_runtime_1.jsxs)("div", { style: { flex: 1, display: 'flex', gap: 0, overflow: 'hidden', padding: '0 24px 20px' }, children: [(0, jsx_runtime_1.jsxs)("div", { style: {
+                                            width: 340, flexShrink: 0, background: 'var(--mr-surface)', borderRadius: '12px 0 0 12px',
+                                            border: '1px solid var(--mr-border)', borderRight: 'none', overflow: 'hidden', display: 'flex', flexDirection: 'column',
+                                        }, children: [(0, jsx_runtime_1.jsx)("div", { style: { padding: '10px 14px', borderBottom: '1px solid var(--mr-line)', fontSize: 11, fontWeight: 600, color: 'var(--mr-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }, children: "Apontamentos" }), (0, jsx_runtime_1.jsxs)("div", { style: { flex: 1, overflowY: 'auto' }, children: [filteredReports.length === 0 && ((0, jsx_runtime_1.jsx)("div", { style: { padding: '24px 16px', fontSize: 12, color: 'var(--mr-text-muted)', lineHeight: 1.6, textAlign: 'center' }, children: emptyMessage })), filteredReports.map(report => {
                                                         const isSelected = selectedReport?.id === report.id;
                                                         const type = typeOf(report);
                                                         const theme = type ? RISK_TYPE_THEME[type] : NEUTRAL_THEME;
                                                         return ((0, jsx_runtime_1.jsxs)("button", { onClick: () => setSelectedId(report.id), style: {
                                                                 width: '100%', textAlign: 'left', padding: '11px 14px',
-                                                                background: isSelected ? theme.bg : 'white',
-                                                                border: 'none', borderBottom: '1px solid #f0f2f4',
+                                                                background: isSelected ? theme.bg : 'var(--mr-surface)',
+                                                                border: 'none', borderBottom: '1px solid var(--mr-line)',
                                                                 cursor: 'pointer', display: 'block',
                                                                 borderLeft: isSelected ? `3px solid ${theme.color}` : '3px solid transparent',
                                                                 transition: 'all 0.1s',
                                                             }, onMouseEnter: e => { if (!isSelected)
                                                                 e.currentTarget.style.background = theme.bg; }, onMouseLeave: e => { if (!isSelected)
-                                                                e.currentTarget.style.background = 'white'; }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 6 }, children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 12, fontWeight: 600, color: '#0f1a14', lineHeight: 1.4, flex: 1 }, children: report.title }), type && (0, jsx_runtime_1.jsx)(RiskTypeTag, { category: RISK_TYPE_THEME[type].label })] }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 10, color: '#6b7f74', marginTop: 3 }, children: report.location }), (0, jsx_runtime_1.jsxs)("div", { style: { marginTop: 6, display: 'flex', alignItems: 'center', gap: 8 }, children: [(0, jsx_runtime_1.jsx)(ReportStatusPill, { status: statusOf(report) }), report.images.length > 0 && ((0, jsx_runtime_1.jsxs)("span", { style: { fontSize: 10, color: '#6b7f74' }, children: ["\uD83D\uDCF7 ", report.images.length] })), (0, jsx_runtime_1.jsx)("span", { style: { marginLeft: 'auto', fontSize: 10, color: '#6b7f74' }, children: formatReportDate(report.submittedAt) })] })] }, report.id));
+                                                                e.currentTarget.style.background = 'var(--mr-surface)'; }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 6 }, children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 12, fontWeight: 600, color: 'var(--mr-text)', lineHeight: 1.4, flex: 1 }, children: report.title }), type && (0, jsx_runtime_1.jsx)(RiskTypeTag, { category: RISK_TYPE_THEME[type].label })] }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 10, color: 'var(--mr-text-muted)', marginTop: 3 }, children: report.location }), (0, jsx_runtime_1.jsxs)("div", { style: { marginTop: 6, display: 'flex', alignItems: 'center', gap: 8 }, children: [(0, jsx_runtime_1.jsx)(ReportStatusPill, { status: statusOf(report) }), report.images.length > 0 && ((0, jsx_runtime_1.jsxs)("span", { style: { fontSize: 10, color: 'var(--mr-text-muted)' }, children: ["\uD83D\uDCF7 ", report.images.length] })), (0, jsx_runtime_1.jsx)("span", { style: { marginLeft: 'auto', fontSize: 10, color: 'var(--mr-text-muted)' }, children: formatReportDate(report.submittedAt) })] })] }, report.id));
                                                     })] })] }), (0, jsx_runtime_1.jsx)("div", { style: {
-                                            flex: 1, background: 'white', borderRadius: '0 12px 12px 0',
-                                            border: '1px solid #e2e8e4', overflow: 'hidden', display: 'flex', flexDirection: 'column',
-                                        }, children: !selectedReport || !selectedStatus ? ((0, jsx_runtime_1.jsx)("div", { style: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32, fontSize: 13, color: '#6b7f74', textAlign: 'center' }, children: reports_1.REPORTS.length === 0 ? emptyMessage : 'Selecione um apontamento para analisar.' })) : ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsxs)("div", { style: { padding: '14px 20px', borderBottom: '1px solid #e2e8e4', background: selectedType ? RISK_TYPE_THEME[selectedType].bg : NEUTRAL_THEME.bg }, children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 10, fontWeight: 600, color: '#6b7f74', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }, children: "An\u00E1lise do apontamento" }), (0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }, children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 15, fontWeight: 700, color: '#0f1a14', fontFamily: 'DM Sans, Inter, sans-serif', lineHeight: 1.3 }, children: selectedReport.title }), (0, jsx_runtime_1.jsxs)("div", { style: { fontSize: 11, color: '#6b7f74', marginTop: 3 }, children: ["Enviado em ", formatReportDate(selectedReport.submittedAt)] })] }), (0, jsx_runtime_1.jsx)(ReportStatusPill, { status: selectedStatus })] })] }), (0, jsx_runtime_1.jsxs)("div", { style: { flex: 1, overflowY: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 18 }, children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("div", { style: sectionLabel, children: "Local" }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 14, fontWeight: 600, color: '#0f1a14', lineHeight: 1.5 }, children: selectedReport.location || 'Local não informado' })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("div", { style: sectionLabel, children: "Imagem" }), selectedReport.images.length === 0 ? ((0, jsx_runtime_1.jsx)("div", { style: { fontSize: 12, color: '#6b7f74' }, children: "Nenhuma imagem enviada." })) : ((0, jsx_runtime_1.jsx)("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 8 }, children: selectedReport.images.map((img, i) => ((0, jsx_runtime_1.jsx)("button", { onClick: () => setViewer({ images: selectedReport.images, index: i }), title: "Ampliar imagem", style: {
-                                                                            padding: 0, border: '1px solid #e2e8e4', borderRadius: 8, overflow: 'hidden',
-                                                                            cursor: 'zoom-in', background: '#f5f6f8', aspectRatio: '4 / 3',
-                                                                        }, children: (0, jsx_runtime_1.jsx)("img", { src: reportImageSrc(img), alt: `Imagem ${i + 1} do apontamento`, loading: "lazy", style: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' } }) }, img + i))) }))] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("div", { style: sectionLabel, children: "Relato" }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 13, color: '#0f1a14', lineHeight: 1.6, padding: '12px 14px', background: '#f9fbf9', borderRadius: 8, border: '1px solid #e8f5ee', whiteSpace: 'pre-wrap' }, children: selectedReport.description || 'Sem relato.' })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("div", { style: sectionLabel, children: "Tipo de risco *" }), (0, jsx_runtime_1.jsx)("div", { style: { display: 'flex', gap: 8, flexWrap: 'wrap' }, children: RISK_TYPE_KEYS.map(key => {
+                                            flex: 1, background: 'var(--mr-surface)', borderRadius: '0 12px 12px 0',
+                                            border: '1px solid var(--mr-border)', overflow: 'hidden', display: 'flex', flexDirection: 'column',
+                                        }, children: !selectedReport || !selectedStatus ? ((0, jsx_runtime_1.jsx)("div", { style: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32, fontSize: 13, color: 'var(--mr-text-muted)', textAlign: 'center' }, children: reports_1.REPORTS.length === 0 ? emptyMessage : 'Selecione um apontamento para analisar.' })) : ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsxs)("div", { style: { padding: '14px 20px', borderBottom: '1px solid var(--mr-border)', background: selectedType ? RISK_TYPE_THEME[selectedType].bg : NEUTRAL_THEME.bg }, children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 10, fontWeight: 600, color: 'var(--mr-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }, children: "An\u00E1lise do apontamento" }), (0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }, children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 15, fontWeight: 700, color: 'var(--mr-text)', fontFamily: 'DM Sans, Inter, sans-serif', lineHeight: 1.3 }, children: selectedReport.title }), (0, jsx_runtime_1.jsxs)("div", { style: { fontSize: 11, color: 'var(--mr-text-muted)', marginTop: 3 }, children: ["Enviado em ", formatReportDate(selectedReport.submittedAt)] })] }), (0, jsx_runtime_1.jsx)(ReportStatusPill, { status: selectedStatus })] })] }), (0, jsx_runtime_1.jsxs)("div", { style: { flex: 1, overflowY: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 18 }, children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("div", { style: sectionLabel, children: "Local" }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 14, fontWeight: 600, color: 'var(--mr-text)', lineHeight: 1.5 }, children: selectedReport.location || 'Local não informado' })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("div", { style: sectionLabel, children: "Imagem" }), selectedReport.images.length === 0 ? ((0, jsx_runtime_1.jsx)("div", { style: { fontSize: 12, color: 'var(--mr-text-muted)' }, children: "Nenhuma imagem enviada." })) : ((0, jsx_runtime_1.jsx)("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 8 }, children: selectedReport.images.map((img, i) => ((0, jsx_runtime_1.jsx)("button", { onClick: () => setViewer({ images: selectedReport.images, index: i }), title: "Ampliar imagem", style: {
+                                                                            padding: 0, border: '1px solid var(--mr-border)', borderRadius: 8, overflow: 'hidden',
+                                                                            cursor: 'zoom-in', background: 'var(--mr-bg)', aspectRatio: '4 / 3',
+                                                                        }, children: (0, jsx_runtime_1.jsx)("img", { src: reportImageSrc(img), alt: `Imagem ${i + 1} do apontamento`, loading: "lazy", style: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' } }) }, img + i))) }))] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("div", { style: sectionLabel, children: "Relato" }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 13, color: 'var(--mr-text)', lineHeight: 1.6, padding: '12px 14px', background: 'var(--mr-surface-2)', borderRadius: 8, border: '1px solid var(--mr-green-soft)', whiteSpace: 'pre-wrap' }, children: selectedReport.description || 'Sem relato.' })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("div", { style: sectionLabel, children: "Tipo de risco *" }), (0, jsx_runtime_1.jsx)("div", { style: { display: 'flex', gap: 8, flexWrap: 'wrap' }, children: RISK_TYPE_KEYS.map(key => {
                                                                         const t = RISK_TYPE_THEME[key];
                                                                         const active = selectedType === key;
                                                                         return ((0, jsx_runtime_1.jsxs)("button", { disabled: !selectedOpen, "aria-pressed": active, onClick: () => decide(selectedReport.id, { type: key }), style: {
@@ -18221,29 +18222,29 @@ function EngineerDashboard() {
                                                                                 padding: '7px 14px', borderRadius: 8,
                                                                                 border: `1.5px solid ${active ? t.color : t.border}`,
                                                                                 background: active ? t.color : t.bg,
-                                                                                color: active ? 'white' : t.color,
+                                                                                color: active ? 'var(--mr-on-accent)' : t.color,
                                                                                 fontSize: 12, fontWeight: 700,
                                                                                 cursor: selectedOpen ? 'pointer' : 'default',
                                                                                 opacity: !selectedOpen && !active ? 0.45 : 1,
                                                                             }, children: [(0, jsx_runtime_1.jsx)("span", { style: { fontSize: 10 }, children: t.icon }), t.label] }, key));
-                                                                    }) })] }), form && ((0, jsx_runtime_1.jsxs)("fieldset", { disabled: !selectedOpen, style: { border: 'none', margin: 0, padding: 0, minWidth: 0 }, children: [(0, jsx_runtime_1.jsx)("div", { style: { ...sectionLabel, marginBottom: 10 }, children: "Cadastro do risco" }), (0, jsx_runtime_1.jsxs)("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }, children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-block", children: "Bloco *" }), (0, jsx_runtime_1.jsxs)("select", { id: "rf-block", value: form.blockId, onChange: e => updateForm(selectedReport, { blockId: e.target.value, roomId: '' }), style: formInput, children: [(0, jsx_runtime_1.jsx)("option", { value: "", children: "Selecione o bloco" }), data_1.CAMPUS_DATA.map(b => (0, jsx_runtime_1.jsx)("option", { value: b.id, children: b.name }, b.id))] }), selectedReport.blockCode && !formBlock && !form.blockId && ((0, jsx_runtime_1.jsxs)("div", { style: { fontSize: 10, color: '#a66a00', marginTop: 3 }, children: ["O bloco ", selectedReport.blockCode, " ainda n\u00E3o est\u00E1 cadastrado no mapa."] }))] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-room", children: "Ambiente" }), (0, jsx_runtime_1.jsxs)("select", { id: "rf-room", value: form.roomId, onChange: e => updateForm(selectedReport, { roomId: e.target.value }), disabled: !formBlock, style: formInput, children: [(0, jsx_runtime_1.jsx)("option", { value: "", children: "\u00C1rea geral do bloco" }), formRooms.map(({ room, floor }) => ((0, jsx_runtime_1.jsxs)("option", { value: room.id, children: [room.name, " \u00B7 ", floor] }, room.id)))] })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1' }, children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-hazard", children: "Perigo (fator de risco) *" }), (0, jsx_runtime_1.jsx)("input", { id: "rf-hazard", value: form.hazard, onChange: e => updateForm(selectedReport, { hazard: e.target.value }), placeholder: "Ex.: Instala\u00E7\u00F5es de esgoto aparentes", style: formInput })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-source", children: "Fonte/origem" }), (0, jsx_runtime_1.jsx)("input", { id: "rf-source", value: form.source, onChange: e => updateForm(selectedReport, { source: e.target.value }), style: formInput })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-exposed", children: "P\u00FAblico exposto *" }), (0, jsx_runtime_1.jsx)("input", { id: "rf-exposed", list: "rf-exposed-options", value: form.exposedPublic, onChange: e => updateForm(selectedReport, { exposedPublic: e.target.value }), style: formInput }), (0, jsx_runtime_1.jsx)("datalist", { id: "rf-exposed-options", children: EXPOSED_PUBLIC_OPTIONS.map(o => (0, jsx_runtime_1.jsx)("option", { value: o }, o)) })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1' }, children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-consequence", children: "Poss\u00EDveis consequ\u00EAncias *" }), (0, jsx_runtime_1.jsx)("textarea", { id: "rf-consequence", rows: 2, value: form.consequence, onChange: e => updateForm(selectedReport, { consequence: e.target.value }), style: { ...formInput, resize: 'vertical' } })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1' }, children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-controls", children: "Medidas de controle existentes" }), (0, jsx_runtime_1.jsx)("textarea", { id: "rf-controls", rows: 2, value: form.existingControls, onChange: e => updateForm(selectedReport, { existingControls: e.target.value }), style: { ...formInput, resize: 'vertical' } })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-prob", children: "Probabilidade (P) *" }), (0, jsx_runtime_1.jsxs)("select", { id: "rf-prob", value: form.probability, onChange: e => updateForm(selectedReport, { probability: Number(e.target.value) }), style: formInput, children: [(0, jsx_runtime_1.jsx)("option", { value: 0, children: "Selecione" }), [1, 2, 3, 4, 5].map(n => (0, jsx_runtime_1.jsx)("option", { value: n, children: n }, n))] })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-sev", children: "Severidade (S) *" }), (0, jsx_runtime_1.jsxs)("select", { id: "rf-sev", value: form.severity, onChange: e => updateForm(selectedReport, { severity: Number(e.target.value) }), style: formInput, children: [(0, jsx_runtime_1.jsx)("option", { value: 0, children: "Selecione" }), [1, 2, 3, 4, 5].map(n => (0, jsx_runtime_1.jsx)("option", { value: n, children: n }, n))] })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: '#f9fbf9', borderRadius: 8, border: '1px solid #e8f5ee' }, children: [(0, jsx_runtime_1.jsxs)("span", { style: { fontSize: 12, color: '#3d4f45' }, children: ["Risco (P\u00D7S): ", (0, jsx_runtime_1.jsx)("strong", { style: { color: '#0f1a14' }, children: riskScore || '—' })] }), (0, jsx_runtime_1.jsx)("span", { style: { fontSize: 12, color: '#3d4f45', marginLeft: 8 }, children: "Classifica\u00E7\u00E3o:" }), riskScore
+                                                                    }) })] }), form && ((0, jsx_runtime_1.jsxs)("fieldset", { disabled: !selectedOpen, style: { border: 'none', margin: 0, padding: 0, minWidth: 0 }, children: [(0, jsx_runtime_1.jsx)("div", { style: { ...sectionLabel, marginBottom: 10 }, children: "Cadastro do risco" }), (0, jsx_runtime_1.jsxs)("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }, children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-block", children: "Bloco *" }), (0, jsx_runtime_1.jsxs)("select", { id: "rf-block", value: form.blockId, onChange: e => updateForm(selectedReport, { blockId: e.target.value, roomId: '' }), style: formInput, children: [(0, jsx_runtime_1.jsx)("option", { value: "", children: "Selecione o bloco" }), data_1.CAMPUS_DATA.map(b => (0, jsx_runtime_1.jsx)("option", { value: b.id, children: b.name }, b.id))] }), selectedReport.blockCode && !formBlock && !form.blockId && ((0, jsx_runtime_1.jsxs)("div", { style: { fontSize: 10, color: '#a66a00', marginTop: 3 }, children: ["O bloco ", selectedReport.blockCode, " ainda n\u00E3o est\u00E1 cadastrado no mapa."] }))] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-room", children: "Ambiente" }), (0, jsx_runtime_1.jsxs)("select", { id: "rf-room", value: form.roomId, onChange: e => updateForm(selectedReport, { roomId: e.target.value }), disabled: !formBlock, style: formInput, children: [(0, jsx_runtime_1.jsx)("option", { value: "", children: "\u00C1rea geral do bloco" }), formRooms.map(({ room, floor }) => ((0, jsx_runtime_1.jsxs)("option", { value: room.id, children: [room.name, " \u00B7 ", floor] }, room.id)))] })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1' }, children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-hazard", children: "Perigo (fator de risco) *" }), (0, jsx_runtime_1.jsx)("input", { id: "rf-hazard", value: form.hazard, onChange: e => updateForm(selectedReport, { hazard: e.target.value }), placeholder: "Ex.: Instala\u00E7\u00F5es de esgoto aparentes", style: formInput })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-source", children: "Fonte/origem" }), (0, jsx_runtime_1.jsx)("input", { id: "rf-source", value: form.source, onChange: e => updateForm(selectedReport, { source: e.target.value }), style: formInput })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-exposed", children: "P\u00FAblico exposto *" }), (0, jsx_runtime_1.jsx)("input", { id: "rf-exposed", list: "rf-exposed-options", value: form.exposedPublic, onChange: e => updateForm(selectedReport, { exposedPublic: e.target.value }), style: formInput }), (0, jsx_runtime_1.jsx)("datalist", { id: "rf-exposed-options", children: EXPOSED_PUBLIC_OPTIONS.map(o => (0, jsx_runtime_1.jsx)("option", { value: o }, o)) })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1' }, children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-consequence", children: "Poss\u00EDveis consequ\u00EAncias *" }), (0, jsx_runtime_1.jsx)("textarea", { id: "rf-consequence", rows: 2, value: form.consequence, onChange: e => updateForm(selectedReport, { consequence: e.target.value }), style: { ...formInput, resize: 'vertical' } })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1' }, children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-controls", children: "Medidas de controle existentes" }), (0, jsx_runtime_1.jsx)("textarea", { id: "rf-controls", rows: 2, value: form.existingControls, onChange: e => updateForm(selectedReport, { existingControls: e.target.value }), style: { ...formInput, resize: 'vertical' } })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-prob", children: "Probabilidade (P) *" }), (0, jsx_runtime_1.jsxs)("select", { id: "rf-prob", value: form.probability, onChange: e => updateForm(selectedReport, { probability: Number(e.target.value) }), style: formInput, children: [(0, jsx_runtime_1.jsx)("option", { value: 0, children: "Selecione" }), [1, 2, 3, 4, 5].map(n => (0, jsx_runtime_1.jsx)("option", { value: n, children: n }, n))] })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-sev", children: "Severidade (S) *" }), (0, jsx_runtime_1.jsxs)("select", { id: "rf-sev", value: form.severity, onChange: e => updateForm(selectedReport, { severity: Number(e.target.value) }), style: formInput, children: [(0, jsx_runtime_1.jsx)("option", { value: 0, children: "Selecione" }), [1, 2, 3, 4, 5].map(n => (0, jsx_runtime_1.jsx)("option", { value: n, children: n }, n))] })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'var(--mr-surface-2)', borderRadius: 8, border: '1px solid var(--mr-green-soft)' }, children: [(0, jsx_runtime_1.jsxs)("span", { style: { fontSize: 12, color: 'var(--mr-text-2)' }, children: ["Risco (P\u00D7S): ", (0, jsx_runtime_1.jsx)("strong", { style: { color: 'var(--mr-text)' }, children: riskScore || '—' })] }), (0, jsx_runtime_1.jsx)("span", { style: { fontSize: 12, color: 'var(--mr-text-2)', marginLeft: 8 }, children: "Classifica\u00E7\u00E3o:" }), riskScore
                                                                                     ? (0, jsx_runtime_1.jsx)(RiskBadge, { level: levelFromScore(riskScore), size: "md" })
-                                                                                    : (0, jsx_runtime_1.jsx)("span", { style: { fontSize: 12, color: '#6b7f74' }, children: "preencha P e S" })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1' }, children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-rec", children: "Recomenda\u00E7\u00F5es" }), (0, jsx_runtime_1.jsx)("textarea", { id: "rf-rec", rows: 3, value: form.recommendation, onChange: e => updateForm(selectedReport, { recommendation: e.target.value }), placeholder: "Medidas recomendadas e setor respons\u00E1vel", style: { ...formInput, resize: 'vertical' } })] })] })] }))] }), (0, jsx_runtime_1.jsx)("div", { style: {
-                                                        padding: '12px 20px', borderTop: '1px solid #e2e8e4',
-                                                        display: 'flex', gap: 8, alignItems: 'center', background: '#f9fbf9',
+                                                                                    : (0, jsx_runtime_1.jsx)("span", { style: { fontSize: 12, color: 'var(--mr-text-muted)' }, children: "preencha P e S" })] }), (0, jsx_runtime_1.jsxs)("div", { style: { gridColumn: '1 / -1' }, children: [(0, jsx_runtime_1.jsx)("label", { style: formLabel, htmlFor: "rf-rec", children: "Recomenda\u00E7\u00F5es" }), (0, jsx_runtime_1.jsx)("textarea", { id: "rf-rec", rows: 3, value: form.recommendation, onChange: e => updateForm(selectedReport, { recommendation: e.target.value }), placeholder: "Medidas recomendadas e setor respons\u00E1vel", style: { ...formInput, resize: 'vertical' } })] })] })] }))] }), (0, jsx_runtime_1.jsx)("div", { style: {
+                                                        padding: '12px 20px', borderTop: '1px solid var(--mr-border)',
+                                                        display: 'flex', gap: 8, alignItems: 'center', background: 'var(--mr-surface-2)',
                                                     }, children: selectedOpen ? ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsx)("button", { disabled: !selectedType, onClick: () => decide(selectedReport.id, { status: 'rejeitado' }), style: {
-                                                                    flexShrink: 0, padding: '8px 14px', borderRadius: 8, border: '1.5px solid #e2e8e4',
-                                                                    background: 'white', color: '#c0280e', fontSize: 12, fontWeight: 600,
+                                                                    flexShrink: 0, padding: '8px 14px', borderRadius: 8, border: '1.5px solid var(--mr-border)',
+                                                                    background: 'var(--mr-surface)', color: '#c0280e', fontSize: 12, fontWeight: 600,
                                                                     cursor: selectedType ? 'pointer' : 'not-allowed', opacity: selectedType ? 1 : 0.5,
-                                                                }, children: "Rejeitar" }), missing.length > 0 && ((0, jsx_runtime_1.jsxs)("span", { style: { fontSize: 11, color: '#6b7f74', marginLeft: 4 }, children: ["Falta: ", missing.join(', ')] })), (0, jsx_runtime_1.jsx)("button", { disabled: missing.length > 0, onClick: () => decide(selectedReport.id, { status: 'validado' }), style: {
+                                                                }, children: "Rejeitar" }), missing.length > 0 && ((0, jsx_runtime_1.jsxs)("span", { style: { fontSize: 11, color: 'var(--mr-text-muted)', marginLeft: 4 }, children: ["Falta: ", missing.join(', ')] })), (0, jsx_runtime_1.jsx)("button", { disabled: missing.length > 0, onClick: () => decide(selectedReport.id, { status: 'validado' }), style: {
                                                                     marginLeft: 'auto', flexShrink: 0, padding: '8px 18px', borderRadius: 8, border: 'none',
                                                                     background: '#1a5c38', color: 'white', fontSize: 12, fontWeight: 700,
                                                                     cursor: missing.length === 0 ? 'pointer' : 'not-allowed', opacity: missing.length === 0 ? 1 : 0.5,
-                                                                }, children: "\u2713 Validar e publicar" })] })) : ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsx)("span", { style: { fontSize: 12, color: '#0f1a14', fontWeight: 600 }, children: selectedStatus === 'rejeitado'
+                                                                }, children: "\u2713 Validar e publicar" })] })) : ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsx)("span", { style: { fontSize: 12, color: 'var(--mr-text)', fontWeight: 600 }, children: selectedStatus === 'rejeitado'
                                                                     ? 'Apontamento rejeitado.'
                                                                     : `${statusLabel(selectedStatus)}${selectedType ? ` como risco ${RISK_TYPE_THEME[selectedType].label.toLowerCase()}` : ''}${riskScore ? ` · nível ${levelLabel(levelFromScore(riskScore)).toLowerCase()}` : ''}.` }), decisions[selectedReport.id]?.status && ((0, jsx_runtime_1.jsx)("button", { onClick: () => decide(selectedReport.id, { status: selectedReport.status }), style: {
-                                                                    marginLeft: 'auto', padding: '8px 14px', borderRadius: 8, border: '1.5px solid #e2e8e4',
-                                                                    background: 'white', color: '#6b7f74', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                                                                    marginLeft: 'auto', padding: '8px 14px', borderRadius: 8, border: '1.5px solid var(--mr-border)',
+                                                                    background: 'var(--mr-surface)', color: 'var(--mr-text-muted)', fontSize: 12, fontWeight: 600, cursor: 'pointer',
                                                                 }, children: "Desfazer" }))] })) })] })) })] })] })] }), viewer && ((0, jsx_runtime_1.jsx)(ImageViewer, { images: viewer.images, index: viewer.index, onIndex: index => setViewer({ ...viewer, index }), onClose: () => setViewer(null) }))] }));
 }
 // ─── Legend ───────────────────────────────────────────────────────────────────
@@ -18253,14 +18254,14 @@ function MapLegend({ compact = false, selectedType, onSelectType, }) {
             position: 'absolute',
             bottom: compact ? 12 : 20,
             right: compact ? 12 : 20,
-            background: 'white', borderRadius: 10, padding: compact ? '8px 10px' : '10px 14px',
-            border: '1px solid #e2e8e4', boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+            background: 'var(--mr-surface)', borderRadius: 10, padding: compact ? '8px 10px' : '10px 14px',
+            border: '1px solid var(--mr-border)', boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
             zIndex: 800,
             maxWidth: compact ? 148 : undefined,
-        }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: compact ? 6 : 8 }, children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 10, fontWeight: 600, color: '#6b7f74', textTransform: 'uppercase', letterSpacing: '0.06em' }, children: "Tipo de risco" }), selectedType && ((0, jsx_runtime_1.jsx)("button", { onClick: () => onSelectType(null), title: "Limpar filtro", style: {
+        }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: compact ? 6 : 8 }, children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 10, fontWeight: 600, color: 'var(--mr-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }, children: "Tipo de risco" }), selectedType && ((0, jsx_runtime_1.jsx)("button", { onClick: () => onSelectType(null), title: "Limpar filtro", style: {
                             border: 'none',
-                            background: '#f0f2f4',
-                            color: '#6b7f74',
+                            background: 'var(--mr-line)',
+                            color: 'var(--mr-text-muted)',
                             borderRadius: 5,
                             cursor: 'pointer',
                             fontSize: 11,
@@ -18284,7 +18285,7 @@ function MapLegend({ compact = false, selectedType, onSelectType, }) {
                         opacity: isDimmed ? 0.42 : 1,
                         padding: compact ? '3px 4px' : '4px 5px',
                         textAlign: 'left',
-                    }, children: [(0, jsx_runtime_1.jsx)("span", { style: { color: theme.color, fontSize: 10 }, children: theme.icon }), (0, jsx_runtime_1.jsx)("span", { style: { fontSize: compact ? 10 : 11, color: '#0f1a14', fontWeight: isActive ? 800 : 500 }, children: theme.label })] }, type));
+                    }, children: [(0, jsx_runtime_1.jsx)("span", { style: { color: theme.color, fontSize: 10 }, children: theme.icon }), (0, jsx_runtime_1.jsx)("span", { style: { fontSize: compact ? 10 : 11, color: 'var(--mr-text)', fontWeight: isActive ? 800 : 500 }, children: theme.label })] }, type));
             })] }));
 }
 // ─── Copy Location Button ───────────────────────────────────────────────────
@@ -18480,7 +18481,7 @@ Google Maps: https://www.google.com/maps?q=${cachedCoords.latitude},${cachedCoor
             return '#fca5a5';
         if (status === 'ready_to_copy')
             return '#93c5fd';
-        return '#e2e8e4';
+        return 'var(--mr-border)';
     };
     const getBgColor = () => {
         if (status === 'success')
@@ -18489,7 +18490,7 @@ Google Maps: https://www.google.com/maps?q=${cachedCoords.latitude},${cachedCoor
             return '#fef2f2';
         if (status === 'ready_to_copy')
             return '#eff6ff';
-        return 'white';
+        return 'var(--mr-surface)';
     };
     return ((0, jsx_runtime_1.jsxs)("button", { onClick: (e) => {
             e.stopPropagation();
@@ -18514,7 +18515,7 @@ Google Maps: https://www.google.com/maps?q=${cachedCoords.latitude},${cachedCoor
             gap: 3,
             transition: 'all 0.18s ease',
             fontFamily: 'inherit',
-        }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', alignItems: 'center', gap: 6, fontSize: isMobile ? 12 : 13, fontWeight: 600, color: '#0f1a14' }, children: [(0, jsx_runtime_1.jsx)("span", { children: status === 'loading' ? '⟳' : status === 'success' ? '✓' : status === 'error' ? '⚠️' : '📍' }), (0, jsx_runtime_1.jsx)("span", { children: status === 'loading'
+        }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', alignItems: 'center', gap: 6, fontSize: isMobile ? 12 : 13, fontWeight: 600, color: 'var(--mr-text)' }, children: [(0, jsx_runtime_1.jsx)("span", { children: status === 'loading' ? '⟳' : status === 'success' ? '✓' : status === 'error' ? '⚠️' : '📍' }), (0, jsx_runtime_1.jsx)("span", { children: status === 'loading'
                             ? 'Obtendo localização...'
                             : status === 'success'
                                 ? 'Localização copiada!'
@@ -18522,7 +18523,7 @@ Google Maps: https://www.google.com/maps?q=${cachedCoords.latitude},${cachedCoor
                                     ? 'Toque para copiar'
                                     : status === 'error'
                                         ? (feedback || 'Erro ao copiar')
-                                        : 'Copiar localização' })] }), (0, jsx_runtime_1.jsxs)("div", { style: { fontSize: 10.5, color: status === 'success' ? '#16a34a' : status === 'error' ? '#dc2626' : '#6b7f74', lineHeight: 1.2 }, children: [status === 'loading' && 'Aguardando sinal GPS...', status === 'success' && cachedCoords && (`${cachedCoords.latitude.toFixed(5)}, ${cachedCoords.longitude.toFixed(5)} (±${Math.round(cachedCoords.accuracy)}m)`), status === 'ready_to_copy' && cachedCoords && (`${cachedCoords.latitude.toFixed(5)}, ${cachedCoords.longitude.toFixed(5)}`), status === 'error' && 'Verifique as permissões de GPS', status === 'idle' && (cachedCoords
+                                        : 'Copiar localização' })] }), (0, jsx_runtime_1.jsxs)("div", { style: { fontSize: 10.5, color: status === 'success' ? '#16a34a' : status === 'error' ? '#dc2626' : 'var(--mr-text-muted)', lineHeight: 1.2 }, children: [status === 'loading' && 'Aguardando sinal GPS...', status === 'success' && cachedCoords && (`${cachedCoords.latitude.toFixed(5)}, ${cachedCoords.longitude.toFixed(5)} (±${Math.round(cachedCoords.accuracy)}m)`), status === 'ready_to_copy' && cachedCoords && (`${cachedCoords.latitude.toFixed(5)}, ${cachedCoords.longitude.toFixed(5)}`), status === 'error' && 'Verifique as permissões de GPS', status === 'idle' && (cachedCoords
                         ? `${cachedCoords.latitude.toFixed(5)}, ${cachedCoords.longitude.toFixed(5)}`
                         : 'Salvar coordenadas do GPS')] })] }));
 }
@@ -18539,9 +18540,22 @@ function useViewportFlags() {
         isTablet: width >= 760 && width < 1024,
     };
 }
+function ThemeToggle({ dark, onToggle, onDarkBar = false, compact = false }) {
+    return ((0, jsx_runtime_1.jsxs)("button", { onClick: onToggle, "aria-pressed": dark, "aria-label": dark ? 'Usar tema claro' : 'Usar tema escuro', title: dark ? 'Usar tema claro' : 'Usar tema escuro', style: {
+            display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0,
+            padding: compact ? '6px 9px' : '6px 12px', borderRadius: 8, cursor: 'pointer',
+            fontSize: 12, fontWeight: 600,
+            border: onDarkBar ? '1px solid rgba(255,255,255,0.18)' : '1.5px solid var(--mr-border)',
+            background: onDarkBar ? 'rgba(255,255,255,0.08)' : 'var(--mr-surface)',
+            color: onDarkBar ? '#d7ebe0' : 'var(--mr-text)',
+        }, children: [(0, jsx_runtime_1.jsx)("span", { "aria-hidden": "true", style: { fontSize: 14, lineHeight: 1 }, children: dark ? '☀' : '☾' }), !compact && (dark ? 'Claro' : 'Escuro')] }));
+}
 function App() {
     const { isMobile, isTablet } = useViewportFlags();
     const [view, setView] = (0, react_1.useState)('campus');
+    const [darkMode, setDarkMode] = (0, react_1.useState)(theme_1.readStoredDarkMode);
+    (0, react_1.useEffect)(() => { (0, theme_1.applyDarkMode)(darkMode); }, [darkMode]);
+    const toggleDarkMode = () => setDarkMode(d => !d);
     const [selectedBlock, setSelectedBlock] = (0, react_1.useState)(null);
     const [selectedRoom, setSelectedRoom] = (0, react_1.useState)(null);
     const [selectedRisk, setSelectedRisk] = (0, react_1.useState)(null);
@@ -18669,14 +18683,14 @@ function App() {
                                     color: isActive ? 'white' : '#9dc8af', fontWeight: isActive ? 600 : 400,
                                     fontSize: 13, cursor: 'pointer',
                                 }, children: label }, label));
-                        })] }), (0, jsx_runtime_1.jsx)("div", { style: { flex: 1, overflow: 'hidden' }, children: (0, jsx_runtime_1.jsx)(EngineerDashboard, {}) })] }));
+                        }), (0, jsx_runtime_1.jsx)("div", { style: { marginLeft: 'auto' }, children: (0, jsx_runtime_1.jsx)(ThemeToggle, { dark: darkMode, onToggle: toggleDarkMode, onDarkBar: true }) })] }), (0, jsx_runtime_1.jsx)("div", { style: { flex: 1, overflow: 'hidden' }, children: (0, jsx_runtime_1.jsx)(EngineerDashboard, {}) })] }));
     }
     const riskBreadcrumb = selectedBlock && selectedRoom
         ? `${selectedBlock.name} › ${selectedRoom.floorName} › ${selectedRoom.room.code}`
         : '';
     return ((0, jsx_runtime_1.jsxs)("div", { style: { height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }, children: [(0, jsx_runtime_1.jsxs)("header", { style: {
                     minHeight: isMobile ? 104 : 56,
-                    background: 'white', borderBottom: '1px solid #e2e8e4',
+                    background: 'var(--mr-surface)', borderBottom: '1px solid var(--mr-border)',
                     display: 'flex',
                     alignItems: isMobile ? 'stretch' : 'center',
                     flexWrap: isMobile ? 'wrap' : 'nowrap',
@@ -18688,12 +18702,12 @@ function App() {
                                     width: 32, height: 32, borderRadius: 8, background: '#1a5c38',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     fontSize: 13, fontWeight: 800, color: 'white', flexShrink: 0,
-                                }, children: "M" }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 13, fontWeight: 700, color: '#0f1a14', fontFamily: 'DM Sans, Inter, sans-serif', lineHeight: 1.2 }, children: "Mapa Digital de Riscos" }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 10, color: '#6b7f74' }, children: "Smart Campus \u2014 UFCG" })] })] }), (0, jsx_runtime_1.jsx)("div", { style: { display: 'flex', gap: 2, marginLeft: isMobile ? 'auto' : 8, order: isMobile ? 2 : 0 }, children: ['Mapa do Campus', 'Painel Técnico'].map((label, i) => {
+                                }, children: "M" }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 13, fontWeight: 700, color: 'var(--mr-text)', fontFamily: 'DM Sans, Inter, sans-serif', lineHeight: 1.2 }, children: "Mapa Digital de Riscos" }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 10, color: 'var(--mr-text-muted)' }, children: "Smart Campus \u2014 UFCG" })] })] }), (0, jsx_runtime_1.jsx)("div", { style: { display: 'flex', gap: 2, marginLeft: isMobile ? 'auto' : 8, order: isMobile ? 2 : 0 }, children: ['Mapa do Campus', 'Painel Técnico'].map((label, i) => {
                             const isActive = i === 0;
                             return ((0, jsx_runtime_1.jsx)("button", { onClick: () => setView(i === 0 ? 'campus' : 'engineer'), style: {
                                     padding: isMobile ? '6px 9px' : '6px 14px', borderRadius: 6, border: 'none',
-                                    background: isActive ? '#e8f5ee' : 'transparent',
-                                    color: isActive ? '#1a5c38' : '#6b7f74', fontWeight: isActive ? 600 : 400,
+                                    background: isActive ? 'var(--mr-green-soft)' : 'transparent',
+                                    color: isActive ? 'var(--mr-primary-text)' : 'var(--mr-text-muted)', fontWeight: isActive ? 600 : 400,
                                     fontSize: isMobile ? 12 : 13, cursor: 'pointer',
                                 }, children: label }, label));
                         }) }), (0, jsx_runtime_1.jsxs)("div", { style: {
@@ -18702,7 +18716,7 @@ function App() {
                             marginInline: isMobile ? 0 : 'auto',
                             position: 'relative',
                             order: isMobile ? 3 : 0,
-                        }, children: [(0, jsx_runtime_1.jsx)("span", { style: { position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 13, color: '#6b7f74' }, children: "\u2315" }), (0, jsx_runtime_1.jsx)("input", { value: searchVal, onChange: e => {
+                        }, children: [(0, jsx_runtime_1.jsx)("span", { style: { position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 13, color: 'var(--mr-text-muted)' }, children: "\u2315" }), (0, jsx_runtime_1.jsx)("input", { value: searchVal, onChange: e => {
                                     setSearchVal(e.target.value);
                                     setIsSearchOpen(true);
                                 }, onKeyDown: e => {
@@ -18714,14 +18728,14 @@ function App() {
                                     }
                                 }, placeholder: "Buscar bloco, sala ou laborat\u00F3rio...", style: {
                                     width: '100%', padding: '8px 12px 8px 34px',
-                                    borderRadius: 8, border: '1.5px solid #e2e8e4',
-                                    fontSize: 13, outline: 'none', background: '#f5f6f8',
+                                    borderRadius: 8, border: '1.5px solid var(--mr-border)',
+                                    fontSize: 13, outline: 'none', background: 'var(--mr-bg)',
                                     transition: 'border-color 0.15s',
                                 }, onFocus: e => {
-                                    e.target.style.borderColor = '#1a5c38';
+                                    e.target.style.borderColor = 'var(--mr-primary-text)';
                                     setIsSearchOpen(true);
                                 }, onBlur: e => {
-                                    e.target.style.borderColor = '#e2e8e4';
+                                    e.target.style.borderColor = 'var(--mr-border)';
                                     window.setTimeout(() => setIsSearchOpen(false), 120);
                                 } }), isSearchOpen && searchVal.trim().length >= 2 && ((0, jsx_runtime_1.jsx)("div", { style: {
                                     position: 'absolute',
@@ -18729,8 +18743,8 @@ function App() {
                                     left: 0,
                                     right: 0,
                                     zIndex: 1200,
-                                    background: 'white',
-                                    border: '1px solid #e2e8e4',
+                                    background: 'var(--mr-surface)',
+                                    border: '1px solid var(--mr-border)',
                                     borderRadius: 9,
                                     boxShadow: '0 8px 24px rgba(15,26,20,0.14)',
                                     overflow: 'hidden',
@@ -18740,32 +18754,32 @@ function App() {
                                     }, style: {
                                         width: '100%',
                                         border: 'none',
-                                        borderBottom: '1px solid #f0f2f4',
-                                        background: 'white',
+                                        borderBottom: '1px solid var(--mr-line)',
+                                        background: 'var(--mr-surface)',
                                         cursor: 'pointer',
                                         display: 'flex',
                                         alignItems: 'center',
                                         gap: 10,
                                         padding: '10px 12px',
                                         textAlign: 'left',
-                                    }, onMouseEnter: e => (e.currentTarget.style.background = '#f5f8f6'), onMouseLeave: e => (e.currentTarget.style.background = 'white'), children: [(0, jsx_runtime_1.jsx)("span", { style: {
+                                    }, onMouseEnter: e => (e.currentTarget.style.background = 'var(--mr-surface-2)'), onMouseLeave: e => (e.currentTarget.style.background = 'var(--mr-surface)'), children: [(0, jsx_runtime_1.jsx)("span", { style: {
                                                 width: 28,
                                                 height: 28,
                                                 borderRadius: 7,
-                                                background: result.type === 'block' ? '#e8f5ee' : result.type === 'room' ? '#f7f1ee' : '#edf5ff',
-                                                color: result.type === 'block' ? '#1a5c38' : result.type === 'room' ? '#795548' : '#1565c0',
+                                                background: result.type === 'block' ? 'var(--mr-green-soft)' : result.type === 'room' ? '#f7f1ee' : '#edf5ff',
+                                                color: result.type === 'block' ? 'var(--mr-primary-text)' : result.type === 'room' ? '#795548' : '#1565c0',
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
                                                 fontSize: 11,
                                                 fontWeight: 800,
                                                 flexShrink: 0,
-                                            }, children: result.type === 'block' ? 'B' : result.type === 'room' ? 'S' : 'M' }), (0, jsx_runtime_1.jsxs)("span", { style: { minWidth: 0 }, children: [(0, jsx_runtime_1.jsx)("span", { style: { display: 'block', color: '#0f1a14', fontSize: 13, fontWeight: 750, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }, children: result.label }), (0, jsx_runtime_1.jsx)("span", { style: { display: 'block', color: '#6b7f74', fontSize: 11, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }, children: result.subtitle })] })] }, result.id))) : ((0, jsx_runtime_1.jsx)("div", { style: { padding: '11px 12px', color: '#6b7f74', fontSize: 12 }, children: "Nenhum bloco ou sala encontrado" })) }))] }), (0, jsx_runtime_1.jsxs)("div", { style: { display: isMobile ? 'none' : 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }, children: [(0, jsx_runtime_1.jsx)("div", { style: {
+                                            }, children: result.type === 'block' ? 'B' : result.type === 'room' ? 'S' : 'M' }), (0, jsx_runtime_1.jsxs)("span", { style: { minWidth: 0 }, children: [(0, jsx_runtime_1.jsx)("span", { style: { display: 'block', color: 'var(--mr-text)', fontSize: 13, fontWeight: 750, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }, children: result.label }), (0, jsx_runtime_1.jsx)("span", { style: { display: 'block', color: 'var(--mr-text-muted)', fontSize: 11, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }, children: result.subtitle })] })] }, result.id))) : ((0, jsx_runtime_1.jsx)("div", { style: { padding: '11px 12px', color: 'var(--mr-text-muted)', fontSize: 12 }, children: "Nenhum bloco ou sala encontrado" })) }))] }), (0, jsx_runtime_1.jsx)("div", { style: { order: isMobile ? 1 : 0, marginLeft: isMobile ? 0 : 'auto', display: 'flex', alignItems: 'center' }, children: (0, jsx_runtime_1.jsx)(ThemeToggle, { dark: darkMode, onToggle: toggleDarkMode, compact: isMobile }) }), (0, jsx_runtime_1.jsxs)("div", { style: { display: isMobile ? 'none' : 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }, children: [(0, jsx_runtime_1.jsx)("div", { style: {
                                     width: 32, height: 32, borderRadius: 8, background: '#1a5c38',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     fontSize: 12, fontWeight: 700, color: 'white', cursor: 'pointer',
-                                }, children: "U" }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 12, color: '#0f1a14', fontWeight: 500 }, children: "Visitante" }), (0, jsx_runtime_1.jsx)("span", { style: { fontSize: 10, color: '#c5d1cc' }, children: "\u25BE" })] })] }), selectedBlock && ((0, jsx_runtime_1.jsx)("div", { style: {
-                    background: '#f0f4f1', borderBottom: '1px solid #e2e8e4',
+                                }, children: "U" }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: 12, color: 'var(--mr-text)', fontWeight: 500 }, children: "Visitante" }), (0, jsx_runtime_1.jsx)("span", { style: { fontSize: 10, color: '#c5d1cc' }, children: "\u25BE" })] })] }), selectedBlock && ((0, jsx_runtime_1.jsx)("div", { style: {
+                    background: 'var(--mr-surface-2)', borderBottom: '1px solid var(--mr-border)',
                     padding: '7px 20px', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0,
                 }, children: (0, jsx_runtime_1.jsx)(Breadcrumb, { parts: [
                         { label: 'Campus', onClick: handleCloseBlock },
@@ -18784,18 +18798,18 @@ function App() {
                             overflow: 'hidden',
                         }, children: [(0, jsx_runtime_1.jsx)(CampusMap, { selectedBlockId: selectedBlock?.id ?? null, onSelectBlock: handleSelectBlock, focusTarget: focusTarget, selectedRiskType: selectedRiskType }), (0, jsx_runtime_1.jsx)(MapLegend, { compact: isMobile || isTablet, selectedType: selectedRiskType, onSelectType: setSelectedRiskType }), !selectedBlock && ((0, jsx_runtime_1.jsxs)("div", { style: {
                                     position: 'absolute', top: isMobile ? 12 : 16, right: isMobile ? 12 : 16,
-                                    background: 'white', borderRadius: 12, padding: '12px 16px',
-                                    border: '1px solid #e2e8e4', boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+                                    background: 'var(--mr-surface)', borderRadius: 12, padding: '12px 16px',
+                                    border: '1px solid var(--mr-border)', boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
                                     minWidth: isMobile ? 170 : 200,
                                     maxWidth: isMobile ? 210 : undefined,
                                     zIndex: 1000,
-                                }, children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 11, fontWeight: 600, color: '#6b7f74', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }, children: "Vis\u00E3o geral do campus" }), [
+                                }, children: [(0, jsx_runtime_1.jsx)("div", { style: { fontSize: 11, fontWeight: 600, color: 'var(--mr-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }, children: "Vis\u00E3o geral do campus" }), [
                                         { label: 'Blocos monitorados', value: data_1.CAMPUS_DATA.length },
                                         { label: 'Riscos críticos', value: data_1.ALL_RISKS.filter(r => r.level === 'critico').length },
-                                    ].map(item => ((0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 12 }, children: [(0, jsx_runtime_1.jsx)("span", { style: { color: '#6b7f74' }, children: item.label }), (0, jsx_runtime_1.jsx)("span", { style: { fontWeight: 700, color: '#0f1a14' }, children: item.value })] }, item.label))), (0, jsx_runtime_1.jsx)("div", { style: { marginTop: 10, paddingTop: 10, borderTop: '1px solid #f0f2f4', fontSize: 11, color: '#6b7f74' }, children: "Clique em um bloco para explorar" })] })), (0, jsx_runtime_1.jsx)(CopyLocationButton, { isMobile: isMobile })] })] })] }));
+                                    ].map(item => ((0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 12 }, children: [(0, jsx_runtime_1.jsx)("span", { style: { color: 'var(--mr-text-muted)' }, children: item.label }), (0, jsx_runtime_1.jsx)("span", { style: { fontWeight: 700, color: 'var(--mr-text)' }, children: item.value })] }, item.label))), (0, jsx_runtime_1.jsx)("div", { style: { marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--mr-line)', fontSize: 11, color: 'var(--mr-text-muted)' }, children: "Clique em um bloco para explorar" })] })), (0, jsx_runtime_1.jsx)(CopyLocationButton, { isMobile: isMobile })] })] })] }));
 }
 
-},{"react/jsx-runtime":1,"react":3,"leaflet":12,"react-leaflet":13,"leaflet/dist/leaflet.css":53,"./data":54,"./reports":55}];// src/App.tsx
+},{"react/jsx-runtime":1,"react":3,"leaflet":12,"react-leaflet":13,"leaflet/dist/leaflet.css":53,"./data":54,"./reports":55,"./theme":56}];// src/App.tsx
 defs[12]=[function(module,exports,require){/* @preserve
  * Leaflet 1.9.4, a JS library for interactive maps. https://leafletjs.com
  * (c) 2010-2023 Vladimir Agafonkin, (c) 2010-2011 CloudMade
@@ -40843,6 +40857,115 @@ exports.REPORTS = [
 ];
 
 },{}];// src/reports.ts
-defs[56]=[function(module,exports,require){
+defs[56]=[function(module,exports,require){"use strict";
+// ─── Tema claro / escuro ──────────────────────────────────────────────────────
+//
+// As cores neutras do app (fundo, superfícies, bordas e textos) e as cores dos
+// tipos de risco são variáveis CSS. O tema escuro troca só os valores delas,
+// ativado por data-theme="dark" no <html>. A escolha fica salva no navegador.
+//
+// O <style> é injetado por aqui (e não pelo index.css) para valer em qualquer
+// forma de build.
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.readStoredDarkMode = readStoredDarkMode;
+exports.applyDarkMode = applyDarkMode;
+const STYLE_ID = 'mr-theme-vars';
+const STORAGE_KEY = 'mr-theme';
+const CSS = `
+:root {
+  --mr-bg: #f5f6f8;
+  --mr-surface: #ffffff;
+  --mr-surface-2: #f9fbf9;
+  --mr-line: #f0f2f4;
+  --mr-border: #e2e8e4;
+  --mr-text: #0f1a14;
+  --mr-text-2: #3d4f45;
+  --mr-text-muted: #6b7f74;
+  --mr-green-soft: #e8f5ee;
+  --mr-primary-text: #1a5c38;
+  --mr-on-accent: #ffffff;
+  --mr-map-bg: #eef1f4;
+
+  --rt-fisico: #2e7d32; --rt-fisico-bg: #eef8ef; --rt-fisico-border: #a8d5ad;
+  --rt-quimico: #c62828; --rt-quimico-bg: #fff0ef; --rt-quimico-border: #efb4ad;
+  --rt-biologico: #795548; --rt-biologico-bg: #f7f1ee; --rt-biologico-border: #d2b8ad;
+  --rt-ergonomico: #a66a00; --rt-ergonomico-bg: #fff8d7; --rt-ergonomico-border: #e9c85e;
+  --rt-acidente: #1565c0; --rt-acidente-bg: #edf5ff; --rt-acidente-border: #a8cdf7;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --mr-bg: #0e1411;
+  --mr-surface: #161f1a;
+  --mr-surface-2: #1c2721;
+  --mr-line: #222e28;
+  --mr-border: #2c3b33;
+  --mr-text: #e6ede9;
+  --mr-text-2: #c4d0c9;
+  --mr-text-muted: #93a59b;
+  --mr-green-soft: #1d3428;
+  --mr-primary-text: #6fcf97;
+  --mr-on-accent: #0e1411;
+  --mr-map-bg: #1a211d;
+
+  --rt-fisico: #81c784; --rt-fisico-bg: rgba(129, 199, 132, 0.14); --rt-fisico-border: rgba(129, 199, 132, 0.4);
+  --rt-quimico: #ef9a9a; --rt-quimico-bg: rgba(239, 154, 154, 0.14); --rt-quimico-border: rgba(239, 154, 154, 0.4);
+  --rt-biologico: #d7b5a6; --rt-biologico-bg: rgba(215, 181, 166, 0.14); --rt-biologico-border: rgba(215, 181, 166, 0.4);
+  --rt-ergonomico: #f0c35a; --rt-ergonomico-bg: rgba(240, 195, 90, 0.14); --rt-ergonomico-border: rgba(240, 195, 90, 0.4);
+  --rt-acidente: #90caf9; --rt-acidente-bg: rgba(144, 202, 249, 0.14); --rt-acidente-border: rgba(144, 202, 249, 0.4);
+}
+
+[data-theme="dark"] body { background-color: var(--mr-bg); color: var(--mr-text); }
+[data-theme="dark"] input::placeholder, [data-theme="dark"] textarea::placeholder { color: #6f8278; }
+
+/* Mapa: inverte o fundo (tiles e desenho do campus) mantendo os matizes, e
+   adapta controles e rótulos do Leaflet. Marcadores de risco não mudam. */
+[data-theme="dark"] .leaflet-tile-pane,
+[data-theme="dark"] .leaflet-overlay-pane { filter: invert(0.9) hue-rotate(180deg) brightness(0.95) contrast(0.92); }
+[data-theme="dark"] .leaflet-bar a,
+[data-theme="dark"] .leaflet-control-attribution { background: var(--mr-surface); color: var(--mr-text); border-color: var(--mr-border); }
+[data-theme="dark"] .leaflet-control-attribution a { color: var(--mr-primary-text); }
+[data-theme="dark"] .block-map-label { background: rgba(22, 31, 26, 0.94); border-color: var(--mr-border); color: var(--mr-text); }
+[data-theme="dark"] .risk-summary-marker__dropdown { background: rgba(22, 31, 26, 0.96); border-color: var(--mr-border); }
+[data-theme="dark"] .risk-summary-marker__count { color: var(--mr-text); }
+[data-theme="dark"] .risk-summary-marker__mini-dot { color: var(--mr-on-accent); }
+`;
+function installThemeStyles() {
+    if (typeof document === 'undefined' || document.getElementById(STYLE_ID))
+        return;
+    const el = document.createElement('style');
+    el.id = STYLE_ID;
+    el.textContent = CSS;
+    document.head.appendChild(el);
+}
+function readStoredDarkMode() {
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored)
+            return stored === 'dark';
+    }
+    catch {
+        // localStorage indisponível (modo privado etc.): usa o tema claro.
+    }
+    return false;
+}
+function applyDarkMode(dark) {
+    installThemeStyles();
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+    try {
+        localStorage.setItem(STORAGE_KEY, dark ? 'dark' : 'light');
+    }
+    catch {
+        // sem persistência; o tema vale só nesta visita.
+    }
+}
+// Aplica o tema salvo antes do primeiro render, para não piscar em branco.
+if (typeof document !== 'undefined') {
+    installThemeStyles();
+    document.documentElement.dataset.theme = readStoredDarkMode() ? 'dark' : 'light';
+}
+
+},{}];// src/theme.ts
+defs[57]=[function(module,exports,require){
 },{}];// src/index.css
 __req(0);})();
